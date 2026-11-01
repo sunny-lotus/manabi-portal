@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>がい数のはんい</title>
+<style>
+:root{
+  --bg:#fff8e8; --card:#fff; --ink:#3a2a14; --sub:#7a6248; --line:#ead9bb;
+  --hana:#ff8a3d; --hana-dk:#c9621f; --hana-soft:#ffe9d8;
+  --niji:#6b4cf0; --niji-soft:#eee9ff;
+  --ok:#2f9e5b; --ok-dk:#1f6e3f; --ok-soft:#d8f3e3;
+  --ng:#d9483b; --gray:#b9ad9a;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"BIZ UDPGothic","Hiragino Maru Gothic ProN","Meiryo",sans-serif;font-size:20px;line-height:1.7}
+rt{font-size:.5em}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:8px 16px;background:#fff;border-bottom:3px solid var(--line)}
+header a{color:var(--sub);text-decoration:none;font-size:16px}
+header h1{font-size:22px;margin:0;flex:1}
+.dots{display:flex;gap:6px}
+.dots button{width:34px;height:34px;padding:0;border-radius:50%;font-size:15px;background:#f3ead8;color:var(--sub);box-shadow:none}
+.dots button.now{outline:3px solid var(--hana)}
+.dots button.done{background:var(--ok-soft);color:var(--ok)}
+main{max-width:860px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:3px solid var(--line);border-radius:18px;padding:18px 20px;margin-bottom:16px}
+.qhead{display:flex;gap:10px;align-items:center}
+.qno{background:var(--hana);color:#fff;border-radius:999px;padding:0 14px;font-weight:700;font-size:16px}
+.tag{background:var(--niji-soft);color:var(--niji);border-radius:999px;padding:0 12px;font-weight:700;font-size:16px}
+.question{font-size:22px;margin:10px 0 14px;line-height:2.3}
+.answer-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;font-size:22px}
+.answer-row input,.typein input{font:inherit;font-size:26px;width:7em;padding:4px 10px;border:3px solid #cdb994;border-radius:12px;text-align:right;background:#fff;color:var(--ink)}
+.answer-row input:focus,.typein input:focus{outline:none;border-color:var(--niji)}
+.btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.btns.center{justify-content:center}
+button{font:inherit;font-weight:700;border:none;border-radius:999px;padding:8px 22px;cursor:pointer;font-size:19px;color:var(--ink)}
+.b-main{background:var(--hana);color:#fff;box-shadow:0 4px 0 var(--hana-dk)}
+.b-sub{background:var(--niji-soft);color:var(--niji);box-shadow:0 4px 0 #cdc1ff}
+.b-ok{background:var(--ok);color:#fff;box-shadow:0 4px 0 var(--ok-dk)}
+button:active{transform:translateY(3px);box-shadow:none}
+
+/* らいおんの会話 */
+.talk{padding:12px 14px}
+.talk.sticky{position:sticky;top:0;z-index:5;box-shadow:0 6px 14px rgba(58,42,20,.12)}
+.stage{display:grid;grid-template-columns:96px 1fr 96px;gap:10px;align-items:center}
+.lion{text-align:center;opacity:.45;transform:scale(.88);transition:.25s}
+.lion.on{opacity:1;transform:none}
+.lion.on .face img{animation:bob .5s ease-in-out infinite alternate}
+.lion .face img{height:100px;width:auto;max-width:100%;display:block;margin:0 auto;object-fit:contain}
+.lion .nm{font-size:12px;color:var(--sub);white-space:nowrap}
+@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-5px)}}
+.bubble{position:relative;background:#fff;border:3px solid var(--hana);border-radius:16px;padding:10px 14px;min-height:72px;font-size:20px;cursor:pointer}
+.bubble.niji{border-color:var(--niji)}
+.bubble::after{content:"";position:absolute;top:28px;width:14px;height:14px;background:#fff;border:3px solid var(--hana);border-width:0 0 3px 3px;left:-10px;transform:rotate(45deg)}
+.bubble.niji::after{left:auto;right:-10px;border-color:var(--niji);border-width:3px 3px 0 0}
+.bubble .more{display:block;text-align:right;font-size:14px;color:var(--sub)}
+.talk .btns{margin-top:10px}
+
+/* すうちょくせん */
+.lab h2{margin:0;font-size:22px}
+.mission{margin:6px 0 4px;font-weight:700;color:var(--niji)}
+#nl{width:100%;height:auto;display:block;touch-action:none;cursor:pointer}
+#slider{width:100%;accent-color:var(--hana);height:28px}
+.stepbtns{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:6px 0}
+.stepbtns button{padding:6px 14px;font-size:18px;background:#f3ead8;box-shadow:0 3px 0 #ddcfb3}
+.probe{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 16px;margin:10px 0;padding:10px;border-radius:14px;background:#faf5ea}
+.probe .num{font-size:34px;font-weight:700;letter-spacing:.06em}
+.dg-tail{background:#e6dccb;border-radius:6px;padding:0 3px;color:var(--sub)}
+.dg-tail em{font-style:normal;color:var(--ng)}
+.probe .arrow{font-size:16px;color:var(--sub);text-align:center;line-height:1.3}
+.probe .res{font-size:34px;font-weight:700;padding:0 12px;border-radius:12px}
+.probe .res.ok{background:var(--ok-soft);color:var(--ok)}
+.probe .res.ng{background:#eee6d8;color:var(--sub)}
+.probe .why{flex-basis:100%;text-align:center;font-size:17px;color:var(--sub)}
+.typein{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap}
+.typein input{font-size:22px;width:6.5em}
+
+/* はなまる */
+.celebrate{position:fixed;inset:0;display:grid;place-items:center;background:rgba(255,248,232,.7);z-index:20}
+.celebrate svg{width:min(60vw,260px);animation:pop .45s cubic-bezier(.3,1.6,.5,1)}
+.celebrate .spiral{stroke-dasharray:1;stroke-dashoffset:1;animation:draw .9s .3s ease forwards}
+@keyframes pop{from{transform:scale(.2) rotate(-30deg)}to{transform:none}}
+@keyframes draw{to{stroke-dashoffset:0}}
+
+@media (max-width:560px){
+  body{font-size:18px}
+  .stage{grid-template-columns:62px 1fr 62px;gap:6px}
+  .lion .face img{height:66px}
+  .lion .nm{display:none}
+  .question{font-size:20px}
+  .probe .num,.probe .res{font-size:26px}
+}
+</style>
+</head>
+<body>
+<header>
+  <a href="../index.html">◀ まなびポータル</a>
+  <h1>がい数の はんい</h1>
+  <div class="dots" id="dots"></div>
+</header>
+
+<main>
+  <section class="card" id="qcard">
+    <div class="qhead"><span class="qno" id="qno"></span><span class="tag" id="qtag"></span></div>
+    <p class="question" id="qtext"></p>
+    <div class="answer-row">
+      <input id="ansLo" inputmode="numeric" autocomplete="off" aria-label="以上の数"><span><ruby>以上<rt>いじょう</rt></ruby></span>
+      <input id="ansHi" inputmode="numeric" autocomplete="off" aria-label="以下の数"><span><ruby>以下<rt>いか</rt></ruby></span>
+    </div>
+    <div class="btns">
+      <button class="b-main" id="checkBtn">こたえる</button>
+      <button class="b-sub" id="hintBtn">💡 らいおんに きく</button>
+    </div>
+  </section>
+
+  <section class="card talk" id="talk" hidden>
+    <div class="stage">
+      <div class="lion" id="lion-hana"><div class="face"></div><div class="nm">はなまらいおん</div></div>
+      <div class="bubble" id="bubble"></div>
+      <div class="lion" id="lion-niji"><div class="face"></div><div class="nm">にじまらいおん</div></div>
+    </div>
+    <div class="btns center" id="talkActs"></div>
+  </section>
+
+  <section class="card lab" id="lab" hidden>
+    <h2>🔍 すうちょくせんで ためそう</h2>
+    <p class="mission" id="mission"></p>
+    <svg id="nl" viewBox="0 0 640 130" aria-label="すうちょくせん"></svg>
+    <input type="range" id="slider" step="1" aria-label="数を えらぶ">
+    <div class="stepbtns" id="steps"></div>
+    <div class="probe" id="probe"></div>
+    <div class="typein">
+      <input id="tryIn" inputmode="numeric" autocomplete="off" placeholder="数を入れる" aria-label="ためす数">
+      <button class="b-sub" id="tryBtn">ためす</button>
+    </div>
+    <div class="btns center"><button class="b-ok" id="pickBtn"></button></div>
+  </section>
+</main>
+
+<div class="celebrate" id="cele" hidden></div>
+
+<script src="../common/lions.js"></script>
+<script>
+const PROBLEMS = [
+  { method: "up",   u: 10000, T: 90000 },
+  { method: "down", u: 10000, T: 90000 },
+  { method: "half", u: 10000, T: 90000 },
+  { method: "up",   u: 1000,  T: 7000 },
+  { method: "half", u: 1000,  T: 3000 },
+  { method: "down", u: 100,   T: 600 },
+  { method: "up",   u: 100,   T: 400 },
+];
+const PLACE = { 10000: "一万の位", 1000: "千の位", 100: "百の位" };
+const PLACE_RUBY = {
+  10000: "<ruby>一万<rt>いちまん</rt></ruby>の<ruby>位<rt>くらい</rt></ruby>",
+  1000: "<ruby>千<rt>せん</rt></ruby>の<ruby>位<rt>くらい</rt></ruby>",
+  100: "<ruby>百<rt>ひゃく</rt></ruby>の<ruby>位<rt>くらい</rt></ruby>",
+};
+const SUB = { 10000: "千の位", 1000: "百の位", 100: "十の位" };
+const MLABEL = { up: "切り上げ", down: "切り捨て", half: "四捨五入" };
+const MTO = { up: "切り上げると", down: "切り捨てると", half: "四捨五入すると" };
+const MRUBY = {
+  up: "<ruby>切<rt>き</rt></ruby>り<ruby>上<rt>あ</rt></ruby>げて",
+  down: "<ruby>切<rt>き</rt></ruby>り<ruby>捨<rt>す</rt></ruby>てて",
+  half: "<ruby>四捨五入<rt>ししゃごにゅう</rt></ruby>して",
+};
+const KEY = "manabi-gaisu-v1";
+
+const $ = (id) => document.getElementById(id);
+const cur = () => PROBLEMS[idx];
+
+function rnd(n, p) {
+  const u = p.u, r = ((n % u) + u) % u, base = n - r;
+  if (p.method === "up") return r ? base + u : n;
+  if (p.method === "down") return base;
+  return r >= u / 2 ? base + u : base;
+}
+function range(p) {
+  const { method: m, u, T } = p;
+  if (m === "up") return [T - u + 1, T];
+  if (m === "down") return [T, T + u - 1];
+  return [T - u / 2, T + u / 2 - 1];
+}
+function num(s) {
+  s = String(s).replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0)).replace(/[,，\s]/g, "");
+  return /^\d+$/.test(s) ? parseInt(s, 10) : null;
+}
+
+let idx = 0, mistakes = 0, hintUsed = false;
+let done = load();
+const lab = { v: 0, min: 0, max: 0, stage: 0, zone: false, tried: new Set() };
+
+function load() {
+  try { const d = JSON.parse(localStorage.getItem(KEY)); if (Array.isArray(d)) return d; } catch (e) {}
+  return PROBLEMS.map(() => 0);
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (e) {} }
+
+/* ---------- らいおんの会話 ---------- */
+let queue = [], qi = 0, acts = [];
+function say(lines, actions) {
+  queue = lines; qi = 0; acts = actions || [];
+  $("talk").hidden = false;
+  showLine();
+}
+function showLine() {
+  const l = queue[qi];
+  const who = l.who;
+  ["hana", "niji"].forEach((k) => {
+    const el = $("lion-" + k);
+    el.classList.toggle("on", k === who);
+    el.querySelector(".face").innerHTML = Lions.svg(k, k === who ? (l.mood || "normal") : "normal");
+  });
+  const b = $("bubble");
+  b.className = "bubble " + who;
+  const last = qi >= queue.length - 1;
+  b.innerHTML = l.t + (last ? "" : '<span class="more">タップで つぎへ ▶</span>');
+  const box = $("talkActs");
+  box.innerHTML = "";
+  if (!last) {
+    box.appendChild(mkBtn("つぎへ ▶", "b-sub", nextLine));
+  } else {
+    acts.forEach((a) => box.appendChild(mkBtn(a.label, a.cls, a.fn)));
+  }
+}
+function nextLine() { if (qi < queue.length - 1) { qi++; showLine(); } }
+function mkBtn(label, cls, fn) {
+  const b = document.createElement("button");
+  b.className = cls; b.textContent = label; b.onclick = fn;
+  return b;
+}
+$("bubble").onclick = nextLine;
+
+/* ---------- もんだい ---------- */
+function setProblem(i) {
+  idx = i; mistakes = 0; hintUsed = false;
+  const p = cur();
+  $("qno").textContent = `もんだい ${i + 1} / ${PROBLEMS.length}`;
+  $("qtag").textContent = MLABEL[p.method];
+  $("qtext").innerHTML = `${MRUBY[p.method]}、${PLACE_RUBY[p.u]}までの がい<ruby>数<rt>すう</rt></ruby>に したとき、<b>${p.T}</b> に なる <ruby>数<rt>かず</rt></ruby>の <ruby>範囲<rt>はんい</rt></ruby>を <ruby>答<rt>こた</rt></ruby>えましょう。`;
+  $("ansLo").value = ""; $("ansHi").value = "";
+  $("lab").hidden = true;
+  $("talk").hidden = true;
+  $("talk").classList.remove("sticky");
+  renderDots();
+}
+function renderDots() {
+  const box = $("dots");
+  box.innerHTML = "";
+  PROBLEMS.forEach((_, i) => {
+    const b = mkBtn(done[i] === 2 ? "🌸" : done[i] ? "✔" : String(i + 1), "", () => setProblem(i));
+    if (done[i]) b.classList.add("done");
+    if (i === idx) b.classList.add("now");
+    b.setAttribute("aria-label", `もんだい ${i + 1}`);
+    box.appendChild(b);
+  });
+}
+
+function explain(p) {
+  const T = p.T, u = p.u, pl = PLACE[u], sb = SUB[u];
+  const digit = (n) => Math.floor(n / (u / 10)) % 10;
+  if (p.method === "up") {
+    const ex = T - u + Math.round(u * 0.37);
+    return [
+      { who: "niji", t: `「切り上げ」は、${pl}より 下の位に 0じゃない 数が あったら、${pl}を 1つ 上げる やりかただよ。` },
+      { who: "hana", mood: "idea", t: `たとえば ${ex}を 切り上げると ${T}。でも ${T - u}は 下の位が ぜんぶ 0だから、${T - u}の ままなんだ！` },
+    ];
+  }
+  if (p.method === "down") {
+    const ex = T + Math.round(u * 0.68);
+    return [
+      { who: "niji", t: `「切り捨て」は、${pl}より 下の位を ぜんぶ 0に する やりかただよ。` },
+      { who: "hana", mood: "idea", t: `たとえば ${ex}を 切り捨てると ${T}。${T + u}は 下の位が もう ぜんぶ 0だから、${T + u}の まま。` },
+    ];
+  }
+  const e1 = T - Math.round(u * 0.38), e2 = T - Math.round(u * 0.62);
+  return [
+    { who: "niji", t: `「四捨五入」は、${sb}の 数字を 見て、0〜4なら 切り捨て、5〜9なら 切り上げる やりかただよ。` },
+    { who: "hana", mood: "idea", t: `たとえば ${e1}は ${sb}が ${digit(e1)}だから ${T}。${e2}は ${sb}が ${digit(e2)}だから ${T - u}に なるよ。` },
+  ];
+}
+
+function labAction() { return { label: "🔍 すうちょくせんで ためす", cls: "b-ok", fn: openLab }; }
+function focusAns() {
+  $("qcard").scrollIntoView({ behavior: "smooth", block: "start" });
+  setTimeout(() => $("ansLo").focus({ preventScroll: true }), 400);
+}
+
+function hint() {
+  hintUsed = true;
+  const p = cur();
+  say([
+    ...explain(p),
+    { who: "niji", t: `${p.T}に なる 数の、いちばん 小さい 数と いちばん 大きい 数を 見つければ いいんだよ。` },
+    { who: "hana", mood: "happy", t: "すうちょくせんで いろんな 数を ためしてみよう！" },
+  ], [labAction()]);
+}
+
+function diagnose(p, lo, hi) {
+  const [L, H] = range(p), T = p.T;
+  const out = [{ who: "hana", mood: "think", t: "おしい！ いっしょに たしかめよう。" }];
+  if (lo > hi) {
+    out.push({ who: "niji", t: "左の はこには 小さいほうの 数、右の はこには 大きいほうの 数を 入れるよ。" });
+    return out;
+  }
+  for (const m of ["up", "down", "half"]) {
+    if (m === p.method) continue;
+    const [a, b] = range({ ...p, method: m });
+    if (lo === a && hi === b) {
+      out.push({ who: "niji", t: `それは「${MLABEL[m]}」の ときの はんいだね。この もんだいは「${MLABEL[p.method]}」だよ。` });
+      out.push(explain(p)[0]);
+      return out;
+    }
+  }
+  const check = (n, side) => {
+    const r = rnd(n, p);
+    if (r !== T) {
+      let t = `${n}を ${MTO[p.method]}、${r}に なっちゃうよ。`;
+      if (p.method === "up" && n === T - p.u) t += " 下の位が ぜんぶ 0だから、上げるものが ないんだ。";
+      if (p.method === "half" && n === T + p.u / 2) t += ` ${SUB[p.u]}が 5だから、上がっちゃうんだ。`;
+      return { who: "niji", mood: "think", t };
+    }
+    if (side === "lo" && n > L) return { who: "niji", t: `${n}は ${T}に なるね。でも、もっと 小さい 数でも ${T}に なるよ。` };
+    if (side === "hi" && n < H) return { who: "niji", t: `${n}は ${T}に なるね。でも、もっと 大きい 数でも ${T}に なるよ。` };
+    return null;
+  };
+  out.push(check(lo, "lo") || { who: "hana", mood: "happy", t: `「以上」の ${lo}は せいかい！` });
+  out.push(check(hi, "hi") || { who: "hana", mood: "happy", t: `「以下」の ${hi}は せいかい！` });
+  out.push({ who: "hana", t: "すうちょくせんで、はじっこの 数を さがしてみよう！" });
+  return out;
+}
+
+function checkAnswer() {
+  const p = cur();
+  const lo = num($("ansLo").value), hi = num($("ansHi").value);
+  if (lo === null || hi === null) {
+    say([{ who: "hana", mood: "komatta", t: "2つの はこに 数を 入れてね！" }]);
+    return;
+  }
+  const [L, H] = range(p);
+  if (lo === L && hi === H) { correct(); return; }
+  mistakes++;
+  say(diagnose(p, lo, hi), [labAction(), { label: "もういちど こたえる", cls: "b-sub", fn: focusAns }]);
+  $("talk").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function correct() {
+  const p = cur(), [L, H] = range(p);
+  done[idx] = Math.max(done[idx], mistakes === 0 && !hintUsed ? 2 : 1);
+  save(); renderDots(); celebrate();
+  const last = idx === PROBLEMS.length - 1;
+  $("talk").classList.remove("sticky");
+  say([
+    { who: "hana", mood: "happy", t: `はなまる！ ${L}以上 ${H}以下、せいかいだよ！` },
+    { who: "niji", mood: "happy", t: `${L - 1}は ${rnd(L - 1, p)}、${H + 1}は ${rnd(H + 1, p)}に なるから、${L}と ${H}が はじっこなんだね。` },
+  ], [{ label: last ? "けっかを 見る ▶" : "つぎの もんだいへ ▶", cls: "b-main", fn: next }]);
+  $("talk").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+function next() {
+  if (idx < PROBLEMS.length - 1) { setProblem(idx + 1); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+  const perfect = done.filter((d) => d === 2).length;
+  $("lab").hidden = true;
+  say([
+    { who: "hana", mood: "happy", t: `ぜんぶ クリア！ 🌸は ${perfect}こ だったよ。` },
+    { who: "niji", mood: "happy", t: "まよったら、はじっこの 数と その となりの 数を ためすのが コツだよ！" },
+  ], [
+    { label: "さいしょから", cls: "b-sub", fn: () => { done = PROBLEMS.map(() => 0); save(); setProblem(0); } },
+    { label: "ポータルへ", cls: "b-main", fn: () => { location.href = "../index.html"; } },
+  ]);
+}
+
+function celebrate() {
+  let s = '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">';
+  for (let i = 0; i < 12; i++) s += `<ellipse transform="translate(100 100) rotate(${i * 30}) translate(0 -66)" rx="24" ry="32" fill="#ff7e95"/>`;
+  s += '<circle cx="100" cy="100" r="66" fill="#fff"/>';
+  let pts = "";
+  for (let t = 0; t <= 1.0001; t += 0.01) {
+    const a = t * Math.PI * 2 * 3.2, r = 4 + t * 50;
+    pts += `${(100 + r * Math.cos(a)).toFixed(1)},${(100 + r * Math.sin(a)).toFixed(1)} `;
+  }
+  s += `<polyline class="spiral" pathLength="1" points="${pts}" fill="none" stroke="#e8364f" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const c = $("cele");
+  c.innerHTML = s; c.hidden = false;
+  clearTimeout(celebrate.t);
+  celebrate.t = setTimeout(() => { c.hidden = true; }, 1700);
+}
+$("cele").onclick = () => { $("cele").hidden = true; };
+
+/* ---------- すうちょくせん ---------- */
+function openLab() {
+  const p = cur(), u = p.u, T = p.T;
+  lab.min = T - 1.5 * u; lab.max = T + 1.5 * u;
+  lab.stage = 0; lab.zone = false; lab.tried = new Set();
+  lab.v = p.method === "up" ? T - u : p.method === "down" ? T + u : T;
+  const sl = $("slider");
+  sl.min = lab.min; sl.max = lab.max; sl.value = lab.v;
+  const deltas = [...new Set([u / 10, u / 100, 1].filter((d) => d >= 1))];
+  const box = $("steps");
+  box.innerHTML = "";
+  deltas.forEach((d) => box.appendChild(mkBtn("−" + d, "", () => setV(lab.v - d, true))));
+  deltas.slice().reverse().forEach((d) => box.appendChild(mkBtn("＋" + d, "", () => setV(lab.v + d, true))));
+  $("lab").hidden = false;
+  $("talk").classList.add("sticky");
+  lab.tried.add(lab.v);
+  updateLab();
+  say([
+    { who: "niji", t: `▲を うごかしたり、ボタンを おしたりして、いろんな 数を ${MTO[p.method]} どうなるか ためしてみよう。` },
+    { who: "hana", t: `${T}に なった 数には みどりの まるが つくよ。まずは ${T}に なる いちばん 小さい 数を さがそう！` },
+  ]);
+  $("talk").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function setV(n, record) {
+  n = Math.max(lab.min, Math.min(lab.max, Math.round(n)));
+  lab.v = n;
+  $("slider").value = n;
+  if (record) lab.tried.add(n);
+  updateLab();
+}
+
+function updateLab() {
+  const p = cur(), T = p.T, v = lab.v, r = rnd(v, p), ok = r === T;
+  const [L, H] = range(p);
+  $("mission").textContent = lab.stage === 0
+    ? `ミッション1：${T}に なる いちばん 小さい 数を さがそう`
+    : lab.stage === 1
+      ? `ミッション2：${T}に なる いちばん 大きい 数を さがそう`
+      : `クリア！ ${L}から ${H}までが ${T}に なるよ`;
+  const pick = $("pickBtn");
+  pick.hidden = lab.stage === 2;
+  pick.textContent = lab.stage === 0 ? "これが いちばん 小さい！" : "これが いちばん 大きい！";
+
+  // 数字を「のこす位」と「下の位」に分けて見せる
+  const k = String(p.u).length - 1, s = String(v);
+  const head = s.slice(0, -k), tail = s.slice(-k);
+  const tailHtml = p.method === "half" ? `<em>${tail[0]}</em>${tail.slice(1)}` : tail;
+  let why;
+  if (p.method === "up") why = /^0+$/.test(tail) ? "下の位が ぜんぶ 0 → 上げるものが ないので そのまま" : `下の位に 0じゃない 数が ある → ${PLACE[p.u]}を 1つ 上げる`;
+  else if (p.method === "down") why = "下の位を ぜんぶ 0に する";
+  else why = `${SUB[p.u]}が ${tail[0]} → ${+tail[0] >= 5 ? "切り上げる" : "切り捨てる"}`;
+  $("probe").innerHTML =
+    `<span class="num">${head}<span class="dg-tail">${tailHtml}</span></span>`
+    + `<span class="arrow">${MTO[p.method]}<br>➡</span>`
+    + `<span class="res ${ok ? "ok" : "ng"}">${r}</span>`
+    + `<span class="arrow">${ok ? `⭕ ${T}に なる！` : `✖ ${T}に ならない`}</span>`
+    + `<span class="why">${why}</span>`;
+  drawLine();
+}
+
+function drawLine() {
+  const p = cur(), u = p.u, T = p.T, min = lab.min, max = lab.max;
+  const X = (n) => 30 + ((n - min) / (max - min)) * 580;
+  let s = "";
+  if (lab.zone) {
+    const [L, H] = range(p);
+    s += `<rect x="${X(L)}" y="58" width="${X(H) - X(L)}" height="44" rx="6" fill="#d8f3e3" stroke="#2f9e5b" stroke-width="2"/>`;
+  }
+  s += '<line x1="18" y1="80" x2="622" y2="80" stroke="#3a2a14" stroke-width="3"/>';
+  for (let n = min; n <= max; n += u / 10) {
+    const big = n % u === 0, mid = n % (u / 2) === 0;
+    const h = big ? 14 : mid ? 10 : 6;
+    s += `<line x1="${X(n)}" y1="${80 - h}" x2="${X(n)}" y2="${80 + h}" stroke="#3a2a14" stroke-width="${big ? 3 : 1.5}"/>`;
+    if (big) s += `<text x="${X(n)}" y="122" text-anchor="middle" font-size="17" font-weight="700" fill="#3a2a14">${n}</text>`;
+  }
+  lab.tried.forEach((n) => {
+    const ok = rnd(n, p) === T;
+    s += `<circle cx="${X(n)}" cy="80" r="6" fill="${ok ? "#2f9e5b" : "#b9ad9a"}" stroke="#fff" stroke-width="1.5"/>`;
+  });
+  const v = lab.v, r = rnd(v, p), ok = r === T, col = ok ? "#2f9e5b" : "#d9483b";
+  if (r !== v && r >= min && r <= max) {
+    const mx = (X(v) + X(r)) / 2;
+    s += `<path d="M${X(v)} 66 Q${mx} 16 ${X(r)} 66" fill="none" stroke="${col}" stroke-width="3" stroke-dasharray="6 5"/>`;
+    s += `<circle cx="${X(r)}" cy="66" r="5" fill="${col}"/>`;
+  }
+  s += `<path d="M${X(v)} 84 l-10 16 h20z" fill="${col}"/>`;
+  $("nl").innerHTML = s;
+}
+
+function pick() {
+  const p = cur(), [L, H] = range(p), v = lab.v, r = rnd(v, p), T = p.T;
+  lab.tried.add(v);
+  if (r !== T) {
+    say([{ who: "niji", mood: "think", t: `${v}を ${MTO[p.method]}、${r}に なっちゃうよ。${T}に なる 数（みどりの まる）の 中から さがそう。` }]);
+  } else if (lab.stage === 0) {
+    if (v === L) {
+      lab.stage = 1;
+      say([
+        { who: "hana", mood: "happy", t: `すごい！ ${L}が いちばん 小さい 数だ！` },
+        { who: "niji", mood: "happy", t: `1つ 小さい ${L - 1}は ${rnd(L - 1, p)}に なるもんね。つぎは いちばん 大きい 数を さがそう！` },
+      ]);
+    } else {
+      say([{ who: "hana", t: `${v}は ${T}に なるね！ でも、もっと 小さい 数でも ${T}に なるかも。「−」で ためしてみて！` }]);
+    }
+  } else if (lab.stage === 1) {
+    if (v === H) {
+      lab.stage = 2; lab.zone = true;
+      say([
+        { who: "niji", mood: "happy", t: `せいかい！ ${H}が いちばん 大きい 数。${H + 1}は ${rnd(H + 1, p)}に なるからね。` },
+        { who: "hana", mood: "happy", t: `みどりの ところ、${L}から ${H}までが ${T}に なる はんいだよ！ もんだいに もどって 入れてみよう！` },
+      ], [{ label: "もんだいに もどる", cls: "b-main", fn: focusAns }]);
+    } else {
+      say([{ who: "hana", t: `${v}は ${T}に なるね！ でも、もっと 大きい 数でも ${T}に なるかも。「＋」で ためしてみて！` }]);
+    }
+  }
+  updateLab();
+}
+
+// すうちょくせんを タップ・ドラッグしても うごかせる
+function lineToNum(e) {
+  const rect = $("nl").getBoundingClientRect();
+  const x = ((e.clientX - rect.left) / rect.width) * 640;
+  return lab.min + ((x - 30) / 580) * (lab.max - lab.min);
+}
+let dragging = false;
+$("nl").addEventListener("pointerdown", (e) => { dragging = true; $("nl").setPointerCapture(e.pointerId); setV(lineToNum(e), false); });
+$("nl").addEventListener("pointermove", (e) => { if (dragging) setV(lineToNum(e), false); });
+$("nl").addEventListener("pointerup", () => { if (dragging) { dragging = false; setV(lab.v, true); } });
+$("slider").addEventListener("input", (e) => setV(+e.target.value, false));
+$("slider").addEventListener("change", (e) => setV(+e.target.value, true));
+$("tryBtn").onclick = () => {
+  const n = num($("tryIn").value);
+  if (n === null) return;
+  if (n < lab.min || n > lab.max) {
+    say([{ who: "niji", t: `${lab.min}から ${lab.max}までの 数で ためしてね。` }]);
+    return;
+  }
+  setV(n, true);
+};
+$("tryIn").addEventListener("keydown", (e) => { if (e.key === "Enter") $("tryBtn").click(); });
+$("pickBtn").onclick = pick;
+$("checkBtn").onclick = checkAnswer;
+$("hintBtn").onclick = hint;
+["ansLo", "ansHi"].forEach((id) => $(id).addEventListener("keydown", (e) => { if (e.key === "Enter") checkAnswer(); }));
+
+/* ---------- はじめ ---------- */
+const first = done.findIndex((d) => !d);
+setProblem(first === -1 ? 0 : first);
+say([
+  { who: "hana", mood: "happy", t: "やあ！ はなまらいおんだよ。" },
+  { who: "niji", mood: "happy", t: "にじまらいおんだよ。がい数の はんいを いっしょに れんしゅうしよう！" },
+  { who: "hana", t: "こまったら「らいおんに きく」を おしてね。すうちょくせんで ためしながら 考えられるよ！" },
+]);
+</script>
+</body>
+</html>

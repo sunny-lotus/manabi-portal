@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>まなびポータル</title>
+<style>
+:root{--bg:#fff8e8;--card:#fff;--ink:#3a2a14;--sub:#7a6248;--line:#ead9bb;--hana:#ff8a3d;--niji:#6b4cf0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"BIZ UDPGothic","Hiragino Maru Gothic ProN","Meiryo",sans-serif;font-size:19px;line-height:1.7}
+.hero{display:flex;align-items:center;justify-content:center;gap:12px;padding:20px 16px 8px;text-align:center}
+.hero img{height:110px;width:auto}
+.hero h1{margin:0;font-size:32px;letter-spacing:.06em}
+.hero p{margin:0;color:var(--sub);font-size:16px}
+main{max-width:900px;margin:0 auto;padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+a.card{display:block;background:var(--card);border:3px solid var(--line);border-radius:18px;padding:18px;color:inherit;text-decoration:none;transition:.15s}
+a.card:hover{border-color:var(--hana);transform:translateY(-3px)}
+.icon{font-size:40px;line-height:1}
+.card h2{margin:6px 0 2px;font-size:22px}
+.tag{display:inline-block;font-size:14px;font-weight:700;padding:0 10px;border-radius:999px;background:#eee9ff;color:var(--niji)}
+.card p{margin:6px 0 0;font-size:16px;color:var(--sub)}
+.card.soon{opacity:.5;pointer-events:none;border-style:dashed}
+@media (max-width:560px){.hero img{height:70px}.hero h1{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="hero">
+  <span id="l1"></span>
+  <div><h1>まなびポータル</h1><p>はなまらいおん と にじまらいおん が いっしょだよ</p></div>
+  <span id="l2"></span>
+</div>
+<main>
+  <a class="card" href="gaisu/index.html">
+    <div class="icon">📏</div>
+    <h2>がい数の はんい</h2>
+    <span class="tag">4年 算数</span>
+    <p>切り上げ・切り捨て・四捨五入で、その数に なる はんいを すうちょくせんで さがそう。</p>
+  </a>
+  <a class="card" href="https://sunny-lotus.github.io/manabiquest/">
+    <div class="icon">⚔️</div>
+    <h2>学びクエスト</h2>
+    <span class="tag">ぼうけん</span>
+    <p>あいことばを 入れて、ぼうけんに 出よう。</p>
+  </a>
+  <a class="card soon" aria-disabled="true">
+    <div class="icon">🌱</div>
+    <h2>じゅんびちゅう</h2>
+    <p>つぎの きょうざいを つくっているよ。</p>
+  </a>
+</main>
+<script src="common/lions.js"></script>
+<script>
+document.getElementById("l1").innerHTML = Lions.svg("hana", "happy");
+document.getElementById("l2").innerHTML = Lions.svg("niji", "happy");
+</script>
+</body>
+</html>
