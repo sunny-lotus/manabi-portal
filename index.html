@@ -421,7 +421,7 @@ const plazaSound = (() => {
     }));
     return results.every(result => result.status === 'fulfilled');
   }
-  function recordedNote(instrument, midi, start, duration, level, kind) {
+  function recordedNote(instrument, midi, start, duration, level, kind, part = '') {
     const e = engine, pool = [...e.samples.values()].filter(item => item.instrument === instrument);
     if (!pool.length) return false;
     const item = pool.reduce((best, candidate) => Math.abs(candidate.root - midi) < Math.abs(best.root - midi) ? candidate : best);
@@ -430,18 +430,18 @@ const plazaSound = (() => {
     source.buffer = item.buffer; source.playbackRate.value = rate;
     const length = Math.min(item.buffer.duration / rate - .003, instrument === 'whistle' ? 2 : Math.max(.25, duration + .22));
     if (length < .02) return false;
-    const release = Math.min(.16, length / 3), strength = instrument === 'whistle' ? .26 : level * (midi < 60 ? 1.6 : 3.2);
+    const release = Math.min(.16, length / 3), strength = instrument === 'whistle' ? .26 : level * (part === 'bass' || midi < 60 ? 1.6 : 3.2);
     gain.gain.setValueAtTime(.0001, start); gain.gain.linearRampToValueAtTime(strength, start + .003);
     gain.gain.setValueAtTime(strength, start + length - release); gain.gain.exponentialRampToValueAtTime(.0001, start + length);
     source.connect(gain); gain.connect(e[kind]); active[kind].add(source);
     source.onended = () => { active[kind].delete(source); source.disconnect(); gain.disconnect(); };
     source.start(start); source.stop(start + length + .002); return true;
   }
-  function note(midi, start, duration, level, type, kind) {
+  function note(midi, start, duration, level, type, kind, part = '') {
     const e = engine;
     if (!e || e.context.state !== "running" || document.hidden) return;
-    const instrument = kind === 'se' ? 'glock' : type === 'square' || (midi < 60 && type === 'triangle') ? 'marimba' : type === 'triangle' && midi < 90 ? 'glock' : null;
-    if (instrument && recordedNote(instrument, midi, start, duration, level, kind)) return;
+    const instrument = part === 'bass' ? 'marimba' : kind === 'se' ? 'glock' : type === 'square' || (midi < 60 && type === 'triangle') ? 'marimba' : type === 'triangle' && midi < 90 ? 'glock' : null;
+    if (instrument && recordedNote(instrument, midi, start, duration, level, kind, part)) return;
     const oscillator = e.context.createOscillator(), gain = e.context.createGain();
     oscillator.type = type; oscillator.frequency.setValueAtTime(440 * 2 ** ((midi - 69) / 12), start);
     gain.gain.setValueAtTime(0, start);
@@ -464,8 +464,8 @@ const plazaSound = (() => {
       const pitch = melody[bar][step];
       if (pitch) note(pitch, nextTime, stepTime * 1.6, .105, "square", "bgm");
       if (step % 4 === 0) {
-        note(roots[bar] + (step === 8 ? 12 : 0), nextTime, .24, .19, "triangle", "bgm");
-        note(36, nextTime, .075, .12, "sine", "bgm");
+        note(roots[bar] + (step === 8 ? 12 : 0), nextTime, .24, .11, "triangle", "bgm", "bass");
+        note(36, nextTime, .075, .075, "sine", "bgm");
       }
       if (step % 4 === 2) note(chords[bar][Math.floor(step / 4) % 3] + 12, nextTime, .12, secondPass ? .055 : .035, "triangle", "bgm");
       if (step % 2 === 0) note(98, nextTime, .025, .012, "triangle", "bgm");
