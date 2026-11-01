@@ -174,13 +174,13 @@ const ZONES = [
 ];
 // アプリを足すときは、ここに 1つ足して、写真を common/shots/ に入れる
 const APPS = [
-  { id: "sansu-mori", zone: "sansu", name: "算数の森", tags: ["4年", "算数", "がい数"], href: "https://sunny-lotus.github.io/sansu-mori/", canva: null,
+  { id: "sansu-mori", zone: "sansu", name: "算数の森", tags: ["4年", "算数", "がい数"], href: "https://sunny-lotus.github.io/sansu-mori/", canva: "https://penguin-90wz32.my.canva.site/dahzrpjv98e",
     shots: ["sm-forest", "sm-map", "sm-c2", "sm-site"],
     desc: "ゆっくり 学ぶ 算数の 森。問題を とくと 材料が もらえて、自分の キャンプ場が すこしずつ 大きく なるよ。まちがえても、らいおんが すぐ 横で 助けて くれる。" },
-  { id: "kotoba-craft", zone: "kokugo", name: "ことばクラフト", tags: ["4年", "国語", "作文"], href: "https://sunny-lotus.github.io/kotoba-craft/", canva: null,
+  { id: "kotoba-craft", zone: "kokugo", name: "ことばクラフト", tags: ["4年", "国語", "作文"], href: "https://sunny-lotus.github.io/kotoba-craft/", canva: "https://penguin-90wz32.my.canva.site/dahzruj5fv8",
     shots: ["kc-title", "kc-craft", "kc-chat", "kc-saved"],
     desc: "「たのしかったです」で おわる 文を、らいおんと いっしょに くわしく そだてよう。からだ・見えた もの・心の声・たとえ を たして いくよ。" },
-  { id: "manabiquest", zone: "bouken", name: "学びクエスト", tags: ["ぼうけん"], href: "https://sunny-lotus.github.io/manabiquest/", canva: null,
+  { id: "manabiquest", zone: "bouken", name: "学びクエスト", tags: ["ぼうけん"], href: "https://sunny-lotus.github.io/manabiquest/", canva: "https://penguin-90wz32.my.canva.site/",
     shots: ["manabiquest"],
     desc: "あいことばを 入れて、ぼうけんに 出よう。" },
 ];
@@ -266,7 +266,7 @@ function vApp(a) {
         <p class="k">${esc(a.desc)}</p>
         <div class="acts">
           <a class="play-btn lift" href="${esc(a.href)}">あそぶ <span>▶</span></a>
-          ${a.canva ? `<a class="canva lift" href="${esc(a.canva)}">Canva版で ひらく <span>▶</span></a>` : `<span class="canva">Canva版（じゅんびちゅう）</span>`}
+          ${a.canva ? `<a class="canva lift" href="${esc(a.canva)}" target="_blank" rel="noopener">Canva版で ひらく <span>▶</span></a>` : `<span class="canva">Canva版（じゅんびちゅう）</span>`}
         </div>
       </section>
     </div></main>`;
