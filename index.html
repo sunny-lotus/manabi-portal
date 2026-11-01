@@ -462,10 +462,10 @@ const plazaSound = (() => {
     while (nextTime < now + .22) {
       const bar = Math.floor(cursor / 16) % 8, step = cursor % 16, secondPass = cursor >= 128;
       const pitch = melody[bar][step];
-      if (pitch) note(pitch, nextTime, stepTime * 1.6, .105, "square", "bgm");
+      if (pitch) note(pitch, nextTime, stepTime * 1.6, step === 8 ? .085 : .105, "square", "bgm");
       if (step % 4 === 0) {
-        note(roots[bar] + (step === 8 ? 12 : 0), nextTime, .24, .11, "triangle", "bgm", "bass");
-        note(36, nextTime, .075, .075, "sine", "bgm");
+        note(roots[bar], nextTime, .24, step === 8 ? .09 : .11, "triangle", "bgm", "bass");
+        note(36, nextTime, .075, step === 8 ? .055 : .075, "sine", "bgm");
       }
       if (step % 4 === 2) note(chords[bar][Math.floor(step / 4) % 3] + 12, nextTime, .12, secondPass ? .055 : .035, "triangle", "bgm");
       if (step % 2 === 0) note(98, nextTime, .025, .012, "triangle", "bgm");
