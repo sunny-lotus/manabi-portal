@@ -161,10 +161,34 @@ main{max-width:1100px;margin:0 auto;padding:24px}
   .thumbs button{width:72px}
   .info p{font-size:16px}
 }
+
+/* Sound controls stay available in every area, including on phones. */
+.sound-bar{max-width:1100px;margin:8px auto 0;padding:0 24px;display:flex;align-items:start;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.sound-bar button,.sound-bar summary{font:700 14px/1.5 "BIZ UDPGothic",sans-serif;min-height:44px;border:2px solid var(--ink);border-radius:12px;background:var(--paper);color:var(--ink);padding:9px 14px;cursor:pointer;touch-action:manipulation}
+.sound-bar button[aria-pressed="true"]{background:#fff0b8}
+.sound-bar button:focus-visible,.sound-bar summary:focus-visible,.sound-bar input:focus-visible{outline:3px solid #2e93dd;outline-offset:3px}
+.sound-levels{max-width:100%;min-width:0}.sound-levels summary{list-style:none;display:flex;align-items:center;justify-content:center}.sound-levels summary::-webkit-details-marker{display:none}
+.sound-levels[open]{flex-basis:100%}.sound-levels[open] summary{width:max-content;margin-left:auto}
+.sound-levels .levels{display:flex;gap:24px;justify-content:flex-end;flex-wrap:wrap;padding:12px 0 4px}
+.sound-levels label{display:grid;grid-template-columns:1fr auto;gap:8px;min-width:200px;font-size:14px;font-weight:700}
+.sound-levels input{grid-column:1/-1;width:100%;min-height:32px;accent-color:#d5891b;cursor:pointer}
+.sound-status{margin:0;flex-basis:100%;text-align:right;font-size:12px;color:var(--mute);min-height:1.7em}
+@media(max-width:820px){.sound-bar{padding:0 16px;justify-content:center}.sound-bar button,.sound-bar summary{font-size:13px;padding:9px 12px}.sound-levels .levels{gap:12px;justify-content:center}.sound-levels label{width:min(100%,280px);min-width:0}.sound-status{text-align:center}}
+
 </style>
 </head>
 <body>
 <div class="flags" aria-hidden="true"><svg id="flags" preserveAspectRatio="none"></svg></div>
+
+<section class="sound-bar" aria-label="音の設定">
+  <button type="button" id="sound-bgm" aria-pressed="false">BGM OFF</button>
+  <button type="button" id="sound-se" aria-pressed="false">効果音 OFF</button>
+  <details class="sound-levels"><summary>音量</summary><div class="levels">
+    <label for="volume-bgm">BGM <output id="value-bgm" for="volume-bgm">25%</output><input id="volume-bgm" type="range" min="0" max="100" step="1" value="25"></label>
+    <label for="volume-se">効果音 <output id="value-se" for="volume-se">40%</output><input id="volume-se" type="range" min="0" max="100" step="1" value="40"></label>
+  </div></details>
+  <p class="sound-status" id="sound-status" role="status" aria-live="polite">音は ボタンで ONにできるよ。</p>
+</section>
 <div id="app"></div>
 
 <script src="https://sunny-lotus.github.io/manabi-portal/common/lions.js"></script>
@@ -303,6 +327,173 @@ function render() {
 }
 window.addEventListener("hashchange", render);
 window.addEventListener("resize", drawFlags);
+/* Original game-style music and short UI sounds. No audio downloads. */
+const plazaSound = (() => {
+  const key = "manabi-portal-sound-v1";
+  const clampVolume = (n, fallback) => Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : fallback;
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key)) || {}; } catch (_) {}
+  const prefs = {
+    bgm: saved.bgm === true, se: saved.se === true,
+    bgmVolume: clampVolume(saved.bgmVolume, 25), seVolume: clampVolume(saved.seVolume, 40),
+  };
+  let engine = null, timer = null, cursor = 0, nextTime = 0, lastSE = -Infinity;
+  const revisions = { bgm: 0, se: 0 };
+  const requested = { bgm: prefs.bgm, se: prefs.se };
+  const active = { bgm: new Set(), se: new Set() };
+  const melody = [
+    [76,0,79,0,81,79,76,0,72,0,74,76,79,0,76,0],
+    [76,0,79,81,84,0,81,79,76,0,72,0,74,76,0,0],
+    [77,0,81,0,84,81,77,0,76,0,77,79,81,0,77,0],
+    [79,0,83,0,86,84,83,0,81,0,79,77,74,0,0,0],
+    [84,0,79,0,81,79,76,0,79,0,76,74,72,0,76,0],
+    [81,0,84,0,89,0,84,81,79,0,77,0,76,77,0,0],
+    [77,0,81,0,86,84,81,0,79,0,77,76,74,0,77,0],
+    [79,0,83,86,84,0,83,79,76,0,74,0,72,0,0,0],
+  ];
+  const roots = [48,45,41,43,48,41,50,43];
+  const chords = [[60,64,67],[57,60,64],[53,57,60],[55,59,62],[60,64,67],[53,57,60],[62,65,69],[55,59,62]];
+  const stepTime = 60 / 126 / 4;
+  const status = text => { document.getElementById("sound-status").textContent = text; };
+  function save() { try { localStorage.setItem(key, JSON.stringify(prefs)); } catch (_) {} }
+  function paint() {
+    for (const kind of ["bgm", "se"]) {
+      const button = document.getElementById("sound-" + kind);
+      button.textContent = (kind === "bgm" ? "BGM" : "効果音") + (prefs[kind] ? " ON" : " OFF");
+      button.setAttribute("aria-pressed", String(prefs[kind]));
+      document.getElementById("volume-" + kind).value = prefs[kind + "Volume"];
+      document.getElementById("value-" + kind).textContent = prefs[kind + "Volume"] + "%";
+    }
+  }
+  function audio() {
+    if (engine && engine.context.state !== "closed") return engine;
+    const Audio = window.AudioContext || window.webkitAudioContext;
+    if (!Audio) throw Error("このブラウザでは 音を使えません。");
+    const context = new Audio(), bgm = context.createGain(), se = context.createGain();
+    const filter = context.createBiquadFilter(); filter.type = "lowpass"; filter.frequency.value = 3200;
+    bgm.connect(filter); filter.connect(context.destination); se.connect(context.destination);
+    engine = { context, bgm, se };
+    volume();
+    context.onstatechange = () => {
+      if (context.state !== "running") stopMusic();
+      else if (!document.hidden && prefs.bgm) startMusic();
+    };
+    return engine;
+  }
+  function volume() {
+    if (!engine) return;
+    for (const kind of ["bgm", "se"]) engine[kind].gain.setTargetAtTime(prefs[kind + "Volume"] / 100 * .55, engine.context.currentTime, .025);
+  }
+  async function unlock() {
+    const e = audio();
+    if (e.context.state !== "running") await e.context.resume();
+    if (e.context.state !== "running") throw Error("もう一度 音のボタンを おしてね。");
+    return e;
+  }
+  function note(midi, start, duration, level, type, kind) {
+    const e = engine;
+    if (!e || e.context.state !== "running" || document.hidden) return;
+    const oscillator = e.context.createOscillator(), gain = e.context.createGain();
+    oscillator.type = type; oscillator.frequency.setValueAtTime(440 * 2 ** ((midi - 69) / 12), start);
+    gain.gain.setValueAtTime(0, start);
+    gain.gain.linearRampToValueAtTime(level, start + .008);
+    gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
+    oscillator.connect(gain); gain.connect(e[kind]); active[kind].add(oscillator);
+    oscillator.onended = () => { active[kind].delete(oscillator); oscillator.disconnect(); gain.disconnect(); };
+    oscillator.start(start); oscillator.stop(start + duration + .015);
+  }
+  function stopVoices(kind) {
+    for (const source of active[kind]) { try { source.stop(); } catch (_) {} }
+    active[kind].clear();
+  }
+  function schedule() {
+    if (!engine || engine.context.state !== "running" || document.hidden || !prefs.bgm) { stopMusic(); return; }
+    const now = engine.context.currentTime;
+    if (nextTime < now - .1) nextTime = now + .03;
+    while (nextTime < now + .22) {
+      const bar = Math.floor(cursor / 16) % 8, step = cursor % 16, secondPass = cursor >= 128;
+      const pitch = melody[bar][step];
+      if (pitch) note(pitch, nextTime, stepTime * 1.6, .105, "square", "bgm");
+      if (step % 4 === 0) {
+        note(roots[bar] + (step === 8 ? 12 : 0), nextTime, .24, .19, "triangle", "bgm");
+        note(36, nextTime, .075, .12, "sine", "bgm");
+      }
+      if (step % 4 === 2) note(chords[bar][Math.floor(step / 4) % 3], nextTime, .12, secondPass ? .055 : .035, "triangle", "bgm");
+      if (step % 2 === 0) note(98, nextTime, .025, .012, "triangle", "bgm");
+      nextTime += stepTime; cursor = (cursor + 1) % 256;
+    }
+  }
+  function startMusic() {
+    if (timer !== null || !prefs.bgm || !engine || engine.context.state !== "running" || document.hidden) return;
+    cursor = 0; nextTime = engine.context.currentTime + .04;
+    timer = window.setInterval(schedule, 80); schedule();
+  }
+  function stopMusic() {
+    if (timer !== null) window.clearInterval(timer);
+    timer = null; stopVoices("bgm");
+  }
+  function effect(kind = "move") {
+    if (!prefs.se || !engine || engine.context.state !== "running" || document.hidden || performance.now() - lastSE < 55) return;
+    lastSE = performance.now();
+    const notes = { move: [76,79], photo: [79,84], launch: [72,76,79,84], back: [76,72], confirm: [79,84] }[kind] || [76,79];
+    notes.forEach((pitch, i) => note(pitch, engine.context.currentTime + i * .045, .11, .14, "sine", "se"));
+  }
+  async function enable(kind, wanted) {
+    requested[kind] = wanted;
+    const revision = ++revisions[kind];
+    if (!wanted) {
+      prefs[kind] = false; save(); paint();
+      if (kind === "bgm") stopMusic(); else stopVoices("se");
+      status((kind === "bgm" ? "BGM" : "効果音") + "を OFFにしたよ。"); return;
+    }
+    try {
+      await unlock();
+      if (revision !== revisions[kind]) return;
+      prefs[kind] = true; save(); paint();
+      if (kind === "bgm") startMusic(); else effect("confirm");
+      status((kind === "bgm" ? "BGM" : "効果音") + "を ONにしたよ。");
+    } catch (error) {
+      if (revision !== revisions[kind]) return;
+      prefs[kind] = false; save(); paint(); status(error.message || "音を ひらけませんでした。");
+      requested[kind] = false;
+    }
+  }
+  let waking = null;
+  function wake() {
+    if (document.hidden || (!prefs.bgm && !prefs.se) || waking) return;
+    waking = unlock().then(startMusic).catch(() => { status("音のボタンを おすと 再開できるよ。"); }).finally(() => { waking = null; });
+  }
+  for (const kind of ["bgm", "se"]) {
+    document.getElementById("sound-" + kind).addEventListener("click", () => enable(kind, !requested[kind]));
+    document.getElementById("volume-" + kind).addEventListener("input", event => {
+      prefs[kind + "Volume"] = clampVolume(Number(event.target.value), 25); volume(); save(); paint();
+    });
+  }
+  document.addEventListener("pointerdown", event => {
+    if (event.isPrimary === false || event.button > 0) return;
+    wake();
+    if (!event.target.closest(".sound-bar") && event.target.closest("a.play-btn,a.canva")) effect("launch");
+  }, { passive: true });
+  document.addEventListener("keydown", event => { if (!event.repeat) wake(); });
+  document.addEventListener("click", event => {
+    if (event.defaultPrevented || event.target.closest(".sound-bar")) return;
+    const target = event.target.closest("a,button");
+    if (!target || target.disabled) return;
+    if (target.matches("a.play-btn,a.canva")) { if (event.detail === 0) effect("launch"); }
+    else effect(target.matches(".viewer .nav,.thumbs button") ? "photo" : target.closest(".crumb") ? "back" : "move");
+  });
+  function pause() {
+    stopMusic(); stopVoices("se");
+    if (engine && engine.context.state === "running") engine.context.suspend().catch(() => {});
+  }
+  document.addEventListener("visibilitychange", () => { if (document.hidden) pause(); else wake(); });
+  window.addEventListener("pagehide", pause);
+  window.addEventListener("pageshow", () => { if (engine) wake(); });
+  paint();
+  if (prefs.bgm || prefs.se) status("画面を タップすると 音がはじまるよ。");
+  return { enable, effect };
+})();
+
 drawFlags();
 render();
 </script>
