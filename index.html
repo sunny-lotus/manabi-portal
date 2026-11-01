@@ -12,12 +12,14 @@
 /* ことばクラフトと同じ決まり：紙・すみ色の線2px・角14px・さわると浮いて影・余白は8の倍数。
    遊園地らしさは「空・旗・風船・テント・汽車」で出す。 */
 :root{--paper:#fbf7f0;--ink:#2b2118;--mute:#8c7f70;--line:#d9cdbb;--white:#fff;--sky:#d6ecf8;--r:14px;
-  --c1:#ef7457;--c2:#f2a516;--c3:#3fae7a;--c4:#2e93dd;--c5:#7b5cff;--c6:#e0559a}
+  --c1:#ef7457;--c2:#f2a516;--c3:#3fae7a;--c4:#2e93dd;--c5:#7b5cff;--c6:#e0559a;--s:1}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0;color:var(--ink)}
+html{overflow-x:hidden} /* 汽車が 右から 走ってくる あいだも、横に はみ出さない */
 body{font-family:"BIZ UDPGothic",sans-serif;font-size:16px;line-height:1.7;word-break:keep-all;overflow-wrap:anywhere;
-  background:linear-gradient(var(--sky) 0, var(--paper) 420px) no-repeat, var(--paper);min-height:100vh;overflow-x:hidden}
+  background:linear-gradient(var(--sky) 0, var(--paper) 420px) no-repeat, var(--paper);min-height:100vh;overflow-x:hidden;transition:background-color .4s}
+body.boardpage{background:var(--zs)}
 a{color:inherit;text-decoration:none}
 .k{font-family:"Klee One",serif;font-weight:600}
 .lift{border:2px solid var(--ink);border-radius:var(--r);background:var(--white);transition:transform .18s cubic-bezier(.3,1.6,.5,1),box-shadow .18s ease;box-shadow:0 0 0 var(--ink);cursor:pointer}
@@ -25,21 +27,30 @@ a{color:inherit;text-decoration:none}
 .lift:active{transform:translateY(1px);box-shadow:0 0 0 var(--ink);transition-duration:.06s}
 .lion img{display:block;height:100%;width:auto}
 
-/* 旗のガーランド */
-.flags{height:48px;position:relative;overflow:hidden}
+/* 開いたときに、じゅんばんに ふわっと 出てくる。--d は 出る じゅん（秒）。--s は 速さ（2回目からは はやく） */
+.ap{animation:appear calc(.6s * var(--s)) cubic-bezier(.2,.9,.3,1.2) both;animation-delay:calc(var(--d, 0) * 1s * var(--s))}
+@keyframes appear{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+/* 旗のガーランド：上から おりてきて、ゆれる */
+.flags{height:48px;position:relative;overflow:hidden;animation:drop .7s cubic-bezier(.2,.9,.3,1.3) both}
+@keyframes drop{from{transform:translateY(-48px)}to{transform:none}}
 .flags svg{position:absolute;left:0;top:0;width:100%;height:48px;transform-origin:50% 0;animation:flag 4s ease-in-out infinite}
 @keyframes flag{0%,100%{transform:rotate(0)}50%{transform:rotate(.4deg) translateY(2px)}}
 
-/* ゲート：風船の文字 */
+/* ゲート：風船の文字が 1つずつ ふくらんで 浮かぶ */
 .gate{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:24px;max-width:1100px;margin:0 auto;padding:8px 24px 0}
-.gate .lion{height:132px;justify-self:end;animation:sway 3.2s ease-in-out infinite;transform-origin:50% 100%}
-.gate .lion.r{justify-self:start;animation-delay:-1.6s}
+.gate .lion{height:132px;justify-self:end}
+.gate .lion.r{justify-self:start}
+.gate .lion img{animation:sway 3.2s ease-in-out infinite;transform-origin:50% 100%}
+.gate .lion.r img{animation-delay:-1.6s}
 @keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg) translateY(-4px)}}
-.balloons{display:flex;gap:8px;justify-content:center;padding-top:8px}
-.balloons span{position:relative;display:grid;place-items:center;width:72px;height:80px;border:2px solid var(--ink);border-radius:50% 50% 46% 46%;
+.balloons{display:flex;gap:8px;justify-content:center;padding-top:8px;margin:0}
+.balloons .bw{display:block;animation:inflate calc(.7s * var(--s)) cubic-bezier(.2,.9,.3,1.3) both;animation-delay:calc(var(--d) * 1s * var(--s))}
+@keyframes inflate{from{opacity:0;transform:translateY(60px) scale(.3)}70%{opacity:1;transform:translateY(-6px) scale(1.08)}to{transform:none}}
+.balloons .b{position:relative;display:grid;place-items:center;width:72px;height:80px;border:2px solid var(--ink);border-radius:50% 50% 46% 46%;
   background:var(--bc);font-size:36px;color:var(--ink);animation:float 3s ease-in-out infinite;animation-delay:calc(var(--i) * -.4s)}
-.balloons span::before{content:"";position:absolute;left:14px;top:12px;width:12px;height:18px;border-radius:50%;background:rgba(255,255,255,.55);transform:rotate(25deg)}
-.balloons span::after{content:"";position:absolute;left:50%;top:100%;width:2px;height:28px;background:var(--ink);transform-origin:top;transform:rotate(calc(var(--i) * 3deg - 9deg))}
+.balloons .b::before{content:"";position:absolute;left:14px;top:12px;width:12px;height:18px;border-radius:50%;background:rgba(255,255,255,.55);transform:rotate(25deg)}
+.balloons .b::after{content:"";position:absolute;left:50%;top:100%;width:2px;height:28px;background:var(--ink);transform-origin:top;transform:rotate(calc(var(--i) * 3deg - 9deg))}
 @keyframes float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-10px) rotate(3deg)}}
 .welcome{text-align:center;margin:32px 0 0}
 .bubble{display:inline-block;background:var(--white);border:2px solid var(--ink);border-radius:999px;padding:8px 24px;font-size:20px}
@@ -49,26 +60,29 @@ main{max-width:1100px;margin:0 auto;padding:24px}
 .tents{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
 .tent{display:flex;flex-direction:column;overflow:hidden;padding:0;text-align:left;font:inherit;color:inherit}
 .tent .roof{height:56px;border-bottom:2px solid var(--ink);position:relative;
-  background:repeating-linear-gradient(90deg,var(--zc) 0 28px,var(--white) 28px 56px)}
-.tent .roof::after{content:"";position:absolute;left:0;right:0;bottom:-14px;height:14px;
-  background:radial-gradient(circle at 14px 0,var(--zc) 13px,transparent 14px) 0 0/56px 14px repeat-x,
-             radial-gradient(circle at 42px 0,var(--white) 13px,transparent 14px) 0 0/56px 14px repeat-x}
+  background:repeating-linear-gradient(90deg,var(--zc) 0 28px,var(--white) 28px 56px);transition:background-position .4s}
+.tent:hover .roof{background-position:28px 0}
 .tent .body{padding:24px 24px 16px;display:flex;align-items:center;gap:16px}
 .tent h2{margin:0;font-size:28px;line-height:1.3}
 .tent h2 small{display:block;font-family:"BIZ UDPGothic",sans-serif;font-size:13px;color:var(--mute);font-weight:700;letter-spacing:.1em}
-.tent .go{margin-left:auto;width:40px;height:40px;border-radius:50%;border:2px solid var(--ink);display:grid;place-items:center;font-weight:700;background:var(--zc);color:var(--white);flex:none}
+.tent .go{margin-left:auto;width:40px;height:40px;border-radius:50%;border:2px solid var(--ink);display:grid;place-items:center;font-weight:700;background:var(--zc);color:var(--white);flex:none;transition:transform .18s}
+.tent:hover .go{transform:translateX(4px)}
 .tent p{margin:0;padding:0 24px 24px;color:var(--mute)}
 
-/* 汽車 */
+/* 汽車：右から 走ってきて、そのあと ずっと 走る */
 .rail{margin-top:24px;position:relative;overflow:hidden;padding:8px 0 24px}
+.rail.ap{animation-name:roll}
+@keyframes roll{from{opacity:0;transform:translateX(40%)}to{opacity:1;transform:none}}
 .rail::after{content:"";position:absolute;left:0;right:0;bottom:16px;height:8px;border-top:2px solid var(--ink);border-bottom:2px solid var(--ink);
   background:repeating-linear-gradient(90deg,transparent 0 20px,var(--ink) 20px 24px)}
 .train{display:flex;gap:16px;width:max-content;animation:run 40s linear infinite;align-items:flex-end}
 .rail:hover .train{animation-play-state:paused}
 @keyframes run{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 .car{position:relative;display:block;width:208px;padding:8px 8px 16px;background:var(--cc);margin-bottom:12px}
+.car:hover{z-index:2}
 .car img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border:2px solid var(--ink);border-radius:8px;background:var(--white)}
-.car .nm{display:block;font-size:13px;font-weight:700;color:var(--ink);background:var(--white);border:2px solid var(--ink);border-radius:999px;padding:0 8px;margin-top:8px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.car .nm{display:block;font-size:13px;font-weight:700;color:var(--ink);background:var(--white);border:2px solid var(--ink);border-radius:999px;padding:0 8px;margin-top:8px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:transform .18s cubic-bezier(.3,1.6,.5,1)}
+.car:hover .nm{transform:scale(1.12)}
 .car::before,.car::after{content:"";position:absolute;bottom:-14px;width:24px;height:24px;border-radius:50%;background:var(--ink);box-shadow:inset 0 0 0 6px var(--white),inset 0 0 0 8px var(--ink)}
 .car::before{left:24px}.car::after{right:24px}
 .engine{position:relative;width:150px;height:118px;margin-bottom:12px;flex:none}
@@ -82,36 +96,67 @@ main{max-width:1100px;margin:0 auto;padding:24px}
 .engine::before,.engine::after{content:"";position:absolute;bottom:-14px;width:28px;height:28px;border-radius:50%;background:var(--ink);box-shadow:inset 0 0 0 6px var(--white),inset 0 0 0 8px var(--ink)}
 .engine::before{left:16px}.engine::after{right:16px}
 
+/* いまいる ばしょ（パンくず） */
+.crumb{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 24px;font-weight:700}
+.crumb a{color:var(--mute);border-bottom:2px solid transparent;transition:border-color .18s}
+.crumb a:hover{border-color:var(--mute)}
+.crumb .sep{color:var(--mute)}
+.crumb .here{display:flex;align-items:center;gap:8px}
+.crumb .here::before{content:"";width:12px;height:12px;border-radius:50%;border:2px solid var(--ink);background:var(--zc)}
+
 /* エリアの中 */
-.zonehead{display:flex;align-items:center;gap:16px;margin:8px 0 24px}
-.zonehead .back{font:inherit;font-weight:700;padding:8px 16px}
-.zonehead h2{margin:0;font-size:28px}
-.zonehead .chip{width:16px;height:16px;border-radius:50%;background:var(--zc);border:2px solid var(--ink)}
 .apps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
 .app{display:flex;flex-direction:column;overflow:hidden;color:inherit}
 .app img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-bottom:2px solid var(--ink)}
-.app .in{padding:16px 24px 24px;display:flex;flex-direction:column;gap:8px}
+.app .info2{padding:16px 24px 24px;display:flex;flex-direction:column;gap:8px}
 .app h3{margin:0;font-size:20px}
-.app .tag{align-self:flex-start;font-size:13px;font-weight:700;border:1.5px solid var(--ink);border-radius:999px;padding:0 8px}
 .app p{margin:0;color:var(--mute)}
 .app .play{margin-top:8px;font-weight:700}
 
+/* アトラクションの 案内板 */
+.board{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:40px;align-items:start}
+.viewer{position:relative}
+.viewer .main{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border:2px solid var(--ink);border-radius:var(--r);background:var(--white)}
+.viewer .main.swap{animation:fadeimg .35s ease}
+@keyframes fadeimg{from{opacity:.2;transform:scale(.985)}to{opacity:1;transform:none}}
+.viewer .nav{position:absolute;top:50%;margin-top:-24px;width:48px;height:48px;border-radius:50%;border:2px solid var(--ink);background:var(--white);font:inherit;font-size:20px;font-weight:700;cursor:pointer;
+  transition:margin .18s cubic-bezier(.3,1.6,.5,1),box-shadow .18s;box-shadow:0 0 0 var(--ink)}
+.viewer .nav:hover{margin-top:-28px;box-shadow:0 5px 0 var(--ink)}
+.viewer .prev{left:-24px}.viewer .next{right:-24px}
+.viewer .count{position:absolute;right:16px;bottom:16px;background:var(--white);border:2px solid var(--ink);border-radius:999px;padding:0 8px;font-size:13px;font-weight:700}
+.thumbs{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.thumbs button{padding:0;width:104px;aspect-ratio:16/9;overflow:hidden;border-radius:8px;opacity:.55}
+.thumbs button img{display:block;width:100%;height:100%;object-fit:cover}
+.thumbs button.on{opacity:1;outline:3px solid var(--ink);outline-offset:2px}
+.info h2{font-size:28px;margin:0 0 8px;line-height:1.3}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.chips span{border:2px solid var(--ink);border-radius:999px;padding:0 16px;font-weight:700;background:var(--white);font-size:13px}
+.info p{font-size:20px;line-height:1.8;margin:0 0 24px}
+.info .acts{display:flex;flex-direction:column;gap:16px}
+.info .play-btn{display:flex;justify-content:space-between;align-items:center;font-size:20px;font-weight:700;padding:16px 24px;background:var(--ink);color:var(--paper)}
+.info .canva{display:flex;justify-content:space-between;align-items:center;font-size:16px;font-weight:700;padding:8px 24px;border:2px dashed var(--mute);border-radius:var(--r);color:var(--mute)}
+
 @media (prefers-reduced-motion:reduce){
-  .flags svg,.gate .lion,.balloons span,.engine .smoke{animation:none}
+  .ap,.flags,.balloons .bw,.rail.ap,.viewer .main.swap{animation:none}
+  .flags svg,.gate .lion img,.balloons .b,.engine .smoke{animation:none}
   .train{animation:none}
   .rail{overflow-x:auto}
 }
 @media (max-width:820px){
   .gate{grid-template-columns:1fr;gap:8px}
   .gate .lion{display:none}
-  .balloons span{width:44px;height:50px;font-size:22px}
-  .balloons span::before{left:8px;top:8px;width:8px;height:12px}
-  .balloons span::after{height:18px}
+  .balloons .b{width:44px;height:50px;font-size:22px}
+  .balloons .b::before{left:8px;top:8px;width:8px;height:12px}
+  .balloons .b::after{height:18px}
   .welcome{margin-top:24px}
   .bubble{font-size:16px}
   .tents,.apps{grid-template-columns:1fr;gap:16px}
   .tent h2{font-size:20px}
   main{padding:16px}
+  .board{grid-template-columns:1fr;gap:24px}
+  .viewer .prev{left:8px}.viewer .next{right:8px}
+  .thumbs button{width:72px}
+  .info p{font-size:16px}
 }
 </style>
 </head>
@@ -122,22 +167,28 @@ main{max-width:1100px;margin:0 auto;padding:24px}
 <script src="common/lions.js"></script>
 <script>
 const ZONES = [
-  { key: "sansu", name: "さんすう", sub: "SANSU", color: "var(--c4)", text: "数や 図形の なぞを とこう" },
-  { key: "kokugo", name: "こくご", sub: "KOKUGO", color: "var(--c1)", text: "ことばで 気持ちを つたえよう" },
-  { key: "bouken", name: "ぼうけん", sub: "BOUKEN", color: "var(--c5)", text: "クエストに ちょうせんしよう" },
+  { key: "sansu", name: "さんすう", sub: "SANSU", color: "var(--c4)", soft: "#dceefb", text: "数や 図形の なぞを とこう" },
+  { key: "kokugo", name: "こくご", sub: "KOKUGO", color: "var(--c1)", soft: "#fde3da", text: "ことばで 気持ちを つたえよう" },
+  { key: "bouken", name: "ぼうけん", sub: "BOUKEN", color: "var(--c5)", soft: "#e9e3ff", text: "クエストに ちょうせんしよう" },
 ];
+// アプリを足すときは、ここに 1つ足して、写真を common/shots/ に入れる
 const APPS = [
-  { zone: "sansu", name: "算数マウンテン", tag: "4年 算数", href: "https://sunny-lotus.github.io/sansu-mountain/", shot: "common/shots/sansu-mountain.jpg",
-    desc: "ゆっくり のぼる 算数の 山。まちがえても、らいおんが すぐ 横で 助けて くれるよ。さいしょの 山は がい数。" },
-  { zone: "kokugo", name: "ことばクラフト", tag: "4年 国語", href: "https://sunny-lotus.github.io/kotoba-craft/", shot: "common/shots/kotoba-craft.jpg",
-    desc: "「たのしかったです」で おわる 文を、らいおんと いっしょに くわしく そだてよう。" },
-  { zone: "bouken", name: "学びクエスト", tag: "ぼうけん", href: "https://sunny-lotus.github.io/manabiquest/", shot: "common/shots/manabiquest.jpg",
+  { id: "sansu-mori", zone: "sansu", name: "算数の森", tags: ["4年", "算数", "がい数"], href: "https://sunny-lotus.github.io/sansu-mori/", canva: null,
+    shots: ["sm-forest", "sm-map", "sm-c2", "sm-site"],
+    desc: "ゆっくり 学ぶ 算数の 森。問題を とくと 材料が もらえて、自分の キャンプ場が すこしずつ 大きく なるよ。まちがえても、らいおんが すぐ 横で 助けて くれる。" },
+  { id: "kotoba-craft", zone: "kokugo", name: "ことばクラフト", tags: ["4年", "国語", "作文"], href: "https://sunny-lotus.github.io/kotoba-craft/", canva: null,
+    shots: ["kc-title", "kc-craft", "kc-chat", "kc-saved"],
+    desc: "「たのしかったです」で おわる 文を、らいおんと いっしょに くわしく そだてよう。からだ・見えた もの・心の声・たとえ を たして いくよ。" },
+  { id: "manabiquest", zone: "bouken", name: "学びクエスト", tags: ["ぼうけん"], href: "https://sunny-lotus.github.io/manabiquest/", canva: null,
+    shots: ["manabiquest"],
     desc: "あいことばを 入れて、ぼうけんに 出よう。" },
 ];
 const BALLOON = ["var(--c1)", "var(--c2)", "var(--c3)", "var(--c4)", "var(--c5)", "var(--c6)"];
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const $ = (id) => document.getElementById(id);
 const zoneOf = (k) => ZONES.find((z) => z.key === k);
+const shot = (s) => `common/shots/${s}.jpg`;
+const ap = (d) => `ap" style="--d:${d}`; // class="..${ap(0.3)}" で「0.3秒あとに ふわっと」
 
 function drawFlags() {
   const w = Math.max(window.innerWidth, 400), n = Math.ceil(w / 48);
@@ -151,46 +202,100 @@ function drawFlags() {
   $("flags").innerHTML = s;
 }
 
+/* ---------- ひろば（トップ） ---------- */
 function vTop() {
-  const title = [..."まなびひろば"].map((ch, i) => `<span aria-hidden="true" style="--i:${i};--bc:${BALLOON[i % BALLOON.length]}">${ch}</span>`).join("");
+  const title = [..."まなびひろば"].map((ch, i) =>
+    `<span class="bw" style="--d:${(0.3 + i * 0.09).toFixed(2)}"><span class="b" aria-hidden="true" style="--i:${i};--bc:${BALLOON[i % BALLOON.length]}">${ch}</span></span>`).join("");
   // 汽車：アプリが少なくても 画面いっぱいに つながるように くりかえす
   let cars = [];
   while (cars.length < 8) cars = cars.concat(APPS);
-  const carHTML = cars.map((a) => `<a class="car lift" href="${esc(a.href)}" style="--cc:${zoneOf(a.zone).color}" title="${esc(a.name)}">
-      <img src="${esc(a.shot)}" alt=""><span class="nm">${esc(a.name)}</span></a>`).join("");
+  const carHTML = cars.map((a) => `<a class="car lift" href="#app/${a.id}" style="--cc:${zoneOf(a.zone).color}" title="${esc(a.name)}">
+      <img src="${shot(a.shots[0])}" alt=""><span class="nm">${esc(a.name)}</span></a>`).join("");
   const engine = `<div class="engine" aria-hidden="true"><span class="smoke"></span><span class="smoke"></span><div class="chimney"></div><div class="boiler"></div><div class="cab"></div></div>`;
   return `<header class="gate">
-      <span class="lion">${Lions.svg("hana", "happy")}</span>
+      <span class="lion ${ap(0.85)}">${Lions.svg("hana", "happy")}</span>
       <h1 class="balloons k" aria-label="まなびひろば">${title}</h1>
-      <span class="lion r">${Lions.svg("niji", "normal")}</span>
+      <span class="lion r ${ap(0.95)}">${Lions.svg("niji", "normal")}</span>
     </header>
-    <p class="welcome"><span class="bubble k">ようこそ！ どの エリアで あそぶ？</span></p>
+    <p class="welcome ${ap(1.05)}"><span class="bubble k">ようこそ！ どの エリアで あそぶ？</span></p>
     <main>
-      <div class="tents">${ZONES.map((z) => {
+      <div class="tents">${ZONES.map((z, i) => {
         const n = APPS.filter((a) => a.zone === z.key).length;
-        return `<button class="tent lift" style="--zc:${z.color}" onclick="location.hash='${z.key}'">
+        return `<button class="tent lift ${ap(1.2 + i * 0.12)};--zc:${z.color}" onclick="location.hash='${z.key}'">
           <span class="roof"></span>
           <span class="body"><h2 class="k"><small>${z.sub}</small>${z.name} エリア</h2><span class="go">▶</span></span>
           <p>${z.text}（${n}こ）</p></button>`;
       }).join("")}</div>
     </main>
-    <div class="rail" aria-label="アプリの 汽車"><div class="train">${engine}${carHTML}${engine}${carHTML}</div></div>`;
+    <div class="rail ${ap(1.55)}" aria-label="アプリの 汽車"><div class="train">${engine}${carHTML}${engine}${carHTML}</div></div>`;
 }
 
+/* ---------- エリアの中 ---------- */
+function crumbHTML(z, a) {
+  return `<nav class="crumb ${ap(0)}" style="--d:0;--zc:${z.color}" aria-label="いまいる ばしょ">
+    <a href="#">まなびひろば</a><span class="sep">›</span>
+    ${a ? `<a href="#${z.key}">${z.name} エリア</a><span class="sep">›</span><span class="here k">${esc(a.name)}</span>` : `<span class="here k">${z.name} エリア</span>`}</nav>`;
+}
 function vZone(z) {
   const apps = APPS.filter((a) => a.zone === z.key);
-  return `<main>
-    <div class="zonehead" style="--zc:${z.color}"><button class="back lift" onclick="location.hash=''">◀ ひろばに もどる</button>
-      <span class="chip"></span><h2 class="k">${z.name} エリア</h2></div>
-    <div class="apps">${apps.map((a) => `<a class="app lift" href="${esc(a.href)}">
-      <img src="${esc(a.shot)}" alt="">
-      <span class="in"><span class="tag">${esc(a.tag)}</span><h3 class="k">${esc(a.name)}</h3><p>${esc(a.desc)}</p><span class="play">あそぶ ▶</span></span></a>`).join("")}</div>
+  return `<main>${crumbHTML(z)}
+    <div class="apps">${apps.map((a, i) => `<a class="app lift ${ap(0.1 + i * 0.1)}" href="#app/${a.id}">
+      <img src="${shot(a.shots[0])}" alt="">
+      <span class="info2"><span class="chips">${a.tags.map((t) => `<span>${esc(t)}</span>`).join("")}</span><h3 class="k">${esc(a.name)}</h3><p>${esc(a.desc)}</p><span class="play">くわしく 見る ▶</span></span></a>`).join("")}</div>
   </main>`;
 }
 
+/* ---------- アトラクションの 案内板 ---------- */
+let cur = 0, curApp = null;
+function vApp(a) {
+  const z = zoneOf(a.zone), many = a.shots.length > 1;
+  return `<main>${crumbHTML(z, a)}
+    <div class="board">
+      <section class="${ap(0.1)}">
+        <div class="viewer">
+          <img class="main" id="mainshot" src="${shot(a.shots[cur])}" alt="${esc(a.name)}の 画面 ${cur + 1}">
+          ${many ? `<button class="nav prev" onclick="flip(-1)" aria-label="まえの 写真">‹</button><button class="nav next" onclick="flip(1)" aria-label="つぎの 写真">›</button>
+          <span class="count" id="count">${cur + 1} / ${a.shots.length}</span>` : ""}
+        </div>
+        ${many ? `<div class="thumbs" id="thumbs">${a.shots.map((s, i) => `<button class="lift ${i === cur ? "on" : ""}" onclick="showShot(${i})" aria-label="写真 ${i + 1}"><img src="${shot(s)}" alt=""></button>`).join("")}</div>` : ""}
+      </section>
+      <section class="info ${ap(0.25)}">
+        <h2 class="k">${esc(a.name)}</h2>
+        <div class="chips">${a.tags.map((t) => `<span>${esc(t)}</span>`).join("")}</div>
+        <p class="k">${esc(a.desc)}</p>
+        <div class="acts">
+          <a class="play-btn lift" href="${esc(a.href)}">あそぶ <span>▶</span></a>
+          ${a.canva ? `<a class="canva lift" href="${esc(a.canva)}">Canva版で ひらく <span>▶</span></a>` : `<span class="canva">Canva版（じゅんびちゅう）</span>`}
+        </div>
+      </section>
+    </div></main>`;
+}
+// 写真を めくる（画面ぜんぶは かきなおさず、写真だけ かえる）
+function showShot(i) {
+  const n = curApp.shots.length; cur = (i + n) % n;
+  const img = $("mainshot"); img.src = shot(curApp.shots[cur]); img.classList.remove("swap"); void img.offsetWidth; img.classList.add("swap");
+  $("count").textContent = `${cur + 1} / ${n}`;
+  $("thumbs").querySelectorAll("button").forEach((b, k) => b.classList.toggle("on", k === cur));
+}
+function flip(d) { showShot(cur + d); }
+document.addEventListener("keydown", (e) => {
+  if (!curApp || curApp.shots.length < 2) return;
+  if (e.key === "ArrowLeft") flip(-1); else if (e.key === "ArrowRight") flip(1);
+});
+
+/* ---------- 表示 ---------- */
+let first = true;
 function render() {
-  const z = zoneOf(location.hash.slice(1));
-  $("app").innerHTML = z ? vZone(z) : vTop();
+  const h = location.hash.slice(1);
+  const a = h.startsWith("app/") ? APPS.find((x) => x.id === h.slice(4)) : null;
+  const z = a ? null : zoneOf(h);
+  curApp = a; if (a) cur = 0;
+  // 1回目は ゆっくり 出てくる。2回目からは はやく
+  document.documentElement.style.setProperty("--s", first ? "1" : ".45");
+  document.body.classList.toggle("boardpage", !!(a || z));
+  document.body.style.setProperty("--zs", (a ? zoneOf(a.zone) : z || ZONES[0]).soft);
+  $("app").innerHTML = a ? vApp(a) : z ? vZone(z) : vTop();
+  first = false;
   window.scrollTo(0, 0);
 }
 window.addEventListener("hashchange", render);
