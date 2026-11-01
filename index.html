@@ -175,6 +175,7 @@ main{max-width:1100px;margin:0 auto;padding:24px}
 .sound-status{margin:0;flex-basis:100%;text-align:right;font-size:12px;color:var(--mute);min-height:1.7em}
 @media(max-width:820px){.sound-bar{padding:0 16px;justify-content:center}.sound-bar button,.sound-bar summary{font-size:13px;padding:9px 12px}.sound-levels .levels{gap:12px;justify-content:center}.sound-levels label{width:min(100%,280px);min-width:0}.sound-status{text-align:center}}
 
+.engine{border:0;background:transparent;padding:0;cursor:pointer;color:inherit}.engine:focus-visible{outline:3px solid #2e93dd;outline-offset:4px;border-radius:12px}.engine::before,.engine::after{z-index:1;pointer-events:none}.audio-credits{max-width:1000px;margin:16px auto;padding:0 16px 20px;color:var(--mute);font-size:12px}.audio-credits summary{cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center}.audio-credits a{text-decoration:underline}
 </style>
 </head>
 <body>
@@ -190,6 +191,7 @@ main{max-width:1100px;margin:0 auto;padding:24px}
   <p class="sound-status" id="sound-status" role="status" aria-live="polite">音は ボタンで ONにできるよ。</p>
 </section>
 <div id="app"></div>
+<details class="audio-credits"><summary>音の素材</summary><p>録音楽器と汽笛：<a href="https://versilian-studios.com/vcsl/" target="_blank" rel="noopener">Versilian Community Sample Library（VCSL）</a>／Versilian Studios・協力演奏者。CC0 1.0。音の先頭と長さを調整し、モノラル・22.05 kHzへ変換。曲はこのひろば用のオリジナルです。</p></details>
 
 <script src="https://sunny-lotus.github.io/manabi-portal/common/lions.js"></script>
 <script>
@@ -238,7 +240,7 @@ function vTop() {
   while (cars.length < 8) cars = cars.concat(APPS);
   const carHTML = cars.map((a) => `<a class="car lift" href="#app/${a.id}" style="--cc:${zoneOf(a.zone).color}" title="${esc(a.name)}">
       <img src="${shot(a.shots[0])}" alt=""><span class="nm">${esc(a.name)}</span></a>`).join("");
-  const engine = `<div class="engine" aria-hidden="true"><span class="smoke"></span><span class="smoke"></span><div class="chimney"></div><div class="boiler"></div><div class="cab"></div></div>`;
+  const engine = `<button type="button" class="engine" aria-label="汽笛をならす" title="汽笛をならす"><span class="smoke"></span><span class="smoke"></span><div class="chimney"></div><div class="boiler"></div><div class="cab"></div></button>`;
   return `<header class="gate">
       <span class="lion ${ap(0.85)}">${Lions.svg("hana", "happy")}</span>
       <h1 class="balloons k" aria-label="まなびひろば">${title}</h1>
@@ -328,6 +330,7 @@ function render() {
 window.addEventListener("hashchange", render);
 window.addEventListener("resize", drawFlags);
 /* Original game-style music and short UI sounds. No audio downloads. */
+/* Original game-style score played with a small CC0 VCSL sample set. */
 const plazaSound = (() => {
   const key = "manabi-portal-sound-v1";
   const clampVolume = (n, fallback) => Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : fallback;
@@ -354,6 +357,15 @@ const plazaSound = (() => {
   const roots = [48,45,41,43,48,41,50,43];
   const chords = [[60,64,67],[57,60,64],[53,57,60],[55,59,62],[60,64,67],[53,57,60],[62,65,69],[55,59,62]];
   const stepTime = 60 / 126 / 4;
+  const recordings = [
+    { id: 'marimba-c2', instrument: 'marimba', root: 48 },
+    { id: 'marimba-c4', instrument: 'marimba', root: 72 },
+    { id: 'marimba-g4', instrument: 'marimba', root: 79 },
+    { id: 'glock-c5', instrument: 'glock', root: 84 },
+    { id: 'glock-c6', instrument: 'glock', root: 96 },
+    { id: 'toy-whistle', instrument: 'whistle', root: 60 },
+  ];
+  let lastWhistle = -Infinity;
   const status = text => { document.getElementById("sound-status").textContent = text; };
   function save() { try { localStorage.setItem(key, JSON.stringify(prefs)); } catch (_) {} }
   function paint() {
@@ -370,9 +382,9 @@ const plazaSound = (() => {
     const Audio = window.AudioContext || window.webkitAudioContext;
     if (!Audio) throw Error("このブラウザでは 音を使えません。");
     const context = new Audio(), bgm = context.createGain(), se = context.createGain();
-    const filter = context.createBiquadFilter(); filter.type = "lowpass"; filter.frequency.value = 3200;
+    const filter = context.createBiquadFilter(); filter.type = "lowpass"; filter.frequency.value = 6000;
     bgm.connect(filter); filter.connect(context.destination); se.connect(context.destination);
-    engine = { context, bgm, se };
+    engine = { context, bgm, se, samples: new Map(), loads: new Map() };
     volume();
     context.onstatechange = () => {
       if (context.state !== "running") stopMusic();
@@ -390,9 +402,46 @@ const plazaSound = (() => {
     if (e.context.state !== "running") throw Error("もう一度 音のボタンを おしてね。");
     return e;
   }
+  async function loadRecordings(kind) {
+    const e = engine;
+    const needed = recordings.filter(item => kind === 'bgm' ? item.instrument !== 'whistle' : item.id === 'glock-c5' || item.instrument === 'whistle');
+    const results = await Promise.allSettled(needed.map(item => {
+      if (e.samples.has(item.id)) return Promise.resolve();
+      if (!e.loads.has(item.id)) {
+        const pending = (async () => {
+          const response = await fetch('common/audio/' + item.id + '.wav');
+          if (!response.ok) throw Error('音源を読み込めませんでした');
+          const buffer = await e.context.decodeAudioData(await response.arrayBuffer());
+          if (!Number.isFinite(buffer.duration) || buffer.duration < .02) throw Error('音源が短すぎます');
+          e.samples.set(item.id, { ...item, buffer });
+        })().catch(error => { e.loads.delete(item.id); throw error; });
+        e.loads.set(item.id, pending);
+      }
+      return e.loads.get(item.id);
+    }));
+    return results.every(result => result.status === 'fulfilled');
+  }
+  function recordedNote(instrument, midi, start, duration, level, kind) {
+    const e = engine, pool = [...e.samples.values()].filter(item => item.instrument === instrument);
+    if (!pool.length) return false;
+    const item = pool.reduce((best, candidate) => Math.abs(candidate.root - midi) < Math.abs(best.root - midi) ? candidate : best);
+    const source = e.context.createBufferSource(), gain = e.context.createGain();
+    const rate = instrument === 'whistle' ? 1 : 2 ** ((midi - item.root) / 12);
+    source.buffer = item.buffer; source.playbackRate.value = rate;
+    const length = Math.min(item.buffer.duration / rate - .003, instrument === 'whistle' ? 2 : Math.max(.25, duration + .22));
+    if (length < .02) return false;
+    const release = Math.min(.16, length / 3), strength = instrument === 'whistle' ? .26 : level * (midi < 60 ? 1.6 : 3.2);
+    gain.gain.setValueAtTime(.0001, start); gain.gain.linearRampToValueAtTime(strength, start + .003);
+    gain.gain.setValueAtTime(strength, start + length - release); gain.gain.exponentialRampToValueAtTime(.0001, start + length);
+    source.connect(gain); gain.connect(e[kind]); active[kind].add(source);
+    source.onended = () => { active[kind].delete(source); source.disconnect(); gain.disconnect(); };
+    source.start(start); source.stop(start + length + .002); return true;
+  }
   function note(midi, start, duration, level, type, kind) {
     const e = engine;
     if (!e || e.context.state !== "running" || document.hidden) return;
+    const instrument = kind === 'se' ? 'glock' : type === 'square' || (midi < 60 && type === 'triangle') ? 'marimba' : type === 'triangle' && midi < 90 ? 'glock' : null;
+    if (instrument && recordedNote(instrument, midi, start, duration, level, kind)) return;
     const oscillator = e.context.createOscillator(), gain = e.context.createGain();
     oscillator.type = type; oscillator.frequency.setValueAtTime(440 * 2 ** ((midi - 69) / 12), start);
     gain.gain.setValueAtTime(0, start);
@@ -418,7 +467,7 @@ const plazaSound = (() => {
         note(roots[bar] + (step === 8 ? 12 : 0), nextTime, .24, .19, "triangle", "bgm");
         note(36, nextTime, .075, .12, "sine", "bgm");
       }
-      if (step % 4 === 2) note(chords[bar][Math.floor(step / 4) % 3], nextTime, .12, secondPass ? .055 : .035, "triangle", "bgm");
+      if (step % 4 === 2) note(chords[bar][Math.floor(step / 4) % 3] + 12, nextTime, .12, secondPass ? .055 : .035, "triangle", "bgm");
       if (step % 2 === 0) note(98, nextTime, .025, .012, "triangle", "bgm");
       nextTime += stepTime; cursor = (cursor + 1) % 256;
     }
@@ -435,6 +484,13 @@ const plazaSound = (() => {
   function effect(kind = "move") {
     if (!prefs.se || !engine || engine.context.state !== "running" || document.hidden || performance.now() - lastSE < 55) return;
     lastSE = performance.now();
+    if (kind === 'whistle') {
+      if (performance.now() - lastWhistle < 850) return;
+      lastWhistle = performance.now();
+      if (recordedNote('whistle', 60, engine.context.currentTime + .01, 2, .2, 'se')) return;
+      [76,79].forEach((pitch, i) => note(pitch, engine.context.currentTime + i * .18, .28, .12, 'sine', 'se'));
+      return;
+    }
     const notes = { move: [76,79], photo: [79,84], launch: [72,76,79,84], back: [76,72], confirm: [79,84] }[kind] || [76,79];
     notes.forEach((pitch, i) => note(pitch, engine.context.currentTime + i * .045, .11, .14, "sine", "se"));
   }
@@ -448,10 +504,11 @@ const plazaSound = (() => {
     }
     try {
       await unlock();
+      const complete = await loadRecordings(kind);
       if (revision !== revisions[kind]) return;
       prefs[kind] = true; save(); paint();
       if (kind === "bgm") startMusic(); else effect("confirm");
-      status((kind === "bgm" ? "BGM" : "効果音") + "を ONにしたよ。");
+      status(complete ? (kind === "bgm" ? "BGM" : "効果音") + "を ONにしたよ。" : "読み込めなかった音は 電子音で鳴らしているよ。");
     } catch (error) {
       if (revision !== revisions[kind]) return;
       prefs[kind] = false; save(); paint(); status(error.message || "音を ひらけませんでした。");
@@ -461,7 +518,7 @@ const plazaSound = (() => {
   let waking = null;
   function wake() {
     if (document.hidden || (!prefs.bgm && !prefs.se) || waking) return;
-    waking = unlock().then(startMusic).catch(() => { status("音のボタンを おすと 再開できるよ。"); }).finally(() => { waking = null; });
+    waking = unlock().then(async () => { await Promise.all([prefs.bgm ? loadRecordings('bgm') : null, prefs.se ? loadRecordings('se') : null]); startMusic(); }).catch(() => { status("音のボタンを おすと 再開できるよ。"); }).finally(() => { waking = null; });
   }
   for (const kind of ["bgm", "se"]) {
     document.getElementById("sound-" + kind).addEventListener("click", () => enable(kind, !requested[kind]));
@@ -480,7 +537,7 @@ const plazaSound = (() => {
     const target = event.target.closest("a,button");
     if (!target || target.disabled) return;
     if (target.matches("a.play-btn,a.canva")) { if (event.detail === 0) effect("launch"); }
-    else effect(target.matches(".viewer .nav,.thumbs button") ? "photo" : target.closest(".crumb") ? "back" : "move");
+    else effect(target.matches('.engine') ? 'whistle' : target.matches(".viewer .nav,.thumbs button") ? "photo" : target.closest(".crumb") ? "back" : "move");
   });
   function pause() {
     stopMusic(); stopVoices("se");
