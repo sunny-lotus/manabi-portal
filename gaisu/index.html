@@ -30,7 +30,8 @@ main{max-width:860px;margin:0 auto;padding:16px}
 .qno{background:var(--hana);color:#fff;border-radius:999px;padding:0 14px;font-weight:700;font-size:16px}
 .tag{background:var(--niji-soft);color:var(--niji);border-radius:999px;padding:0 12px;font-weight:700;font-size:16px}
 .question{font-size:22px;margin:10px 0 14px;line-height:2.3}
-.answer-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;font-size:22px}
+.answer-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;font-size:22px}
+.answer-row .pair{white-space:nowrap}
 .answer-row input,.typein input{font:inherit;font-size:26px;width:7em;padding:4px 10px;border:3px solid #cdb994;border-radius:12px;text-align:right;background:#fff;color:var(--ink)}
 .answer-row input:focus,.typein input:focus{outline:none;border-color:var(--niji)}
 .btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
@@ -63,9 +64,9 @@ button:active{transform:translateY(3px);box-shadow:none}
 .mission{margin:6px 0 4px;font-weight:700;color:var(--niji)}
 #nl{width:100%;height:auto;display:block;touch-action:none;cursor:pointer}
 #slider{width:100%;accent-color:var(--hana);height:28px}
-.stepbtns{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:6px 0}
-.stepbtns button{padding:6px 14px;font-size:18px;background:#f3ead8;box-shadow:0 3px 0 #ddcfb3}
-.probe{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 16px;margin:10px 0;padding:10px;border-radius:14px;background:#faf5ea}
+.stepbtns{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:6px;margin:6px 0;max-width:560px;margin-inline:auto}
+.stepbtns button{padding:6px 0;font-size:18px;background:#f3ead8;box-shadow:0 3px 0 #ddcfb3;white-space:nowrap}
+.probe{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 14px;margin:10px 0;padding:10px;border-radius:14px;background:#faf5ea}
 .probe .num{font-size:34px;font-weight:700;letter-spacing:.06em}
 .dg-tail{background:#e6dccb;border-radius:6px;padding:0 3px;color:var(--sub)}
 .dg-tail em{font-style:normal;color:var(--ng)}
@@ -73,7 +74,10 @@ button:active{transform:translateY(3px);box-shadow:none}
 .probe .res{font-size:34px;font-weight:700;padding:0 12px;border-radius:12px}
 .probe .res.ok{background:var(--ok-soft);color:var(--ok)}
 .probe .res.ng{background:#eee6d8;color:var(--sub)}
-.probe .why{flex-basis:100%;text-align:center;font-size:17px;color:var(--sub)}
+.probe .why{flex-basis:100%;text-align:center;font-size:17px;color:var(--sub);line-height:1.5}
+.probe .why b{display:block;font-size:19px}
+.probe .why b.ok{color:var(--ok)}
+.probe .why b.ng{color:var(--ng)}
 .typein{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap}
 .typein input{font-size:22px;width:6.5em}
 
@@ -85,12 +89,38 @@ button:active{transform:translateY(3px);box-shadow:none}
 @keyframes draw{to{stroke-dashoffset:0}}
 
 @media (max-width:560px){
-  body{font-size:18px}
-  .stage{grid-template-columns:62px 1fr 62px;gap:6px}
-  .lion .face img{height:66px}
+  body{font-size:17px}
+  header{padding:6px 12px}
+  header h1{font-size:19px}
+  .dots{gap:4px}
+  .dots button{width:30px;height:30px;font-size:14px}
+  main{padding:10px}
+  .card{padding:14px;border-radius:16px;margin-bottom:12px}
+  .question{font-size:19px;line-height:2.05;margin:8px 0 10px}
+  .answer-row{font-size:19px}
+  .answer-row input{font-size:24px;width:6.2em}
+  button{font-size:17px;padding:8px 18px}
+  /* 話しているらいおんだけを左に小さく出して、ふきだしを広くする */
+  .talk{padding:10px}
+  .stage{grid-template-columns:46px 1fr;gap:8px}
+  .lion{order:0}
+  .bubble{order:1}
+  .lion:not(.on){display:none}
+  .lion .face img{height:54px}
   .lion .nm{display:none}
-  .question{font-size:20px}
+  .bubble{font-size:16px;line-height:1.6;min-height:0;padding:6px 10px}
+  .bubble .more{display:none}
+  .bubble::after,.bubble.niji::after{left:-10px;right:auto;top:18px;border-width:0 0 3px 3px}
+  .talk .btns{margin-top:8px;gap:8px}
+  .lab h2{font-size:19px}
+  .mission{font-size:16px;line-height:1.5}
+  .stepbtns{gap:4px}
+  .stepbtns button{font-size:14px;letter-spacing:-.02em}
+  .probe{padding:8px}
   .probe .num,.probe .res{font-size:26px}
+  .probe .arrow{font-size:13px}
+  .probe .why{font-size:15px}
+  .typein input{font-size:20px;width:6em}
 }
 </style>
 </head>
@@ -106,8 +136,8 @@ button:active{transform:translateY(3px);box-shadow:none}
     <div class="qhead"><span class="qno" id="qno"></span><span class="tag" id="qtag"></span></div>
     <p class="question" id="qtext"></p>
     <div class="answer-row">
-      <input id="ansLo" inputmode="numeric" autocomplete="off" aria-label="以上の数"><span><ruby>以上<rt>いじょう</rt></ruby></span>
-      <input id="ansHi" inputmode="numeric" autocomplete="off" aria-label="以下の数"><span><ruby>以下<rt>いか</rt></ruby></span>
+      <span class="pair"><input id="ansLo" inputmode="numeric" autocomplete="off" aria-label="以上の数"> <ruby>以上<rt>いじょう</rt></ruby></span>
+      <span class="pair"><input id="ansHi" inputmode="numeric" autocomplete="off" aria-label="以下の数"> <ruby>以下<rt>いか</rt></ruby></span>
     </div>
     <div class="btns">
       <button class="b-main" id="checkBtn">こたえる</button>
@@ -400,14 +430,14 @@ function openLab() {
   const box = $("steps");
   box.innerHTML = "";
   deltas.forEach((d) => box.appendChild(mkBtn("−" + d, "", () => setV(lab.v - d, true))));
-  deltas.slice().reverse().forEach((d) => box.appendChild(mkBtn("＋" + d, "", () => setV(lab.v + d, true))));
+  deltas.slice().reverse().forEach((d) => box.appendChild(mkBtn("+" + d, "",() => setV(lab.v + d, true))));
   $("lab").hidden = false;
   $("talk").classList.add("sticky");
   lab.tried.add(lab.v);
   updateLab();
   say([
-    { who: "niji", t: `▲を うごかしたり、ボタンを おしたりして、いろんな 数を ${MTO[p.method]} どうなるか ためしてみよう。` },
-    { who: "hana", t: `${T}に なった 数には みどりの まるが つくよ。まずは ${T}に なる いちばん 小さい 数を さがそう！` },
+    { who: "niji", t: `▲や ボタンで 数を かえて、${MTO[p.method]} どうなるか ためそう。` },
+    { who: "hana", t: `${T}に なる 数には みどりの まるが つくよ。まずは いちばん 小さい 数を さがそう！` },
   ]);
   $("talk").scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -444,20 +474,24 @@ function updateLab() {
     `<span class="num">${head}<span class="dg-tail">${tailHtml}</span></span>`
     + `<span class="arrow">${MTO[p.method]}<br>➡</span>`
     + `<span class="res ${ok ? "ok" : "ng"}">${r}</span>`
-    + `<span class="arrow">${ok ? `⭕ ${T}に なる！` : `✖ ${T}に ならない`}</span>`
-    + `<span class="why">${why}</span>`;
+    + `<span class="why"><b class="${ok ? "ok" : "ng"}">${ok ? `⭕ ${T}に なる！` : `✖ ${T}に ならない`}</b>${why}</span>`;
   drawLine();
 }
 
+// スマホでは数直線の横はばを せまく計算して、目もりと数字を大きく見せる
+const lineW = () => (window.innerWidth < 560 ? 360 : 640);
+const lineX = (n) => 20 + ((n - lab.min) / (lab.max - lab.min)) * (lineW() - 40);
+
 function drawLine() {
-  const p = cur(), u = p.u, T = p.T, min = lab.min, max = lab.max;
-  const X = (n) => 30 + ((n - min) / (max - min)) * 580;
+  const p = cur(), u = p.u, T = p.T, min = lab.min, max = lab.max, W = lineW();
+  const X = lineX;
+  $("nl").setAttribute("viewBox", `0 0 ${W} 130`);
   let s = "";
   if (lab.zone) {
     const [L, H] = range(p);
     s += `<rect x="${X(L)}" y="58" width="${X(H) - X(L)}" height="44" rx="6" fill="#d8f3e3" stroke="#2f9e5b" stroke-width="2"/>`;
   }
-  s += '<line x1="18" y1="80" x2="622" y2="80" stroke="#3a2a14" stroke-width="3"/>';
+  s += `<line x1="8" y1="80" x2="${W - 8}" y2="80" stroke="#3a2a14" stroke-width="3"/>`;
   for (let n = min; n <= max; n += u / 10) {
     const big = n % u === 0, mid = n % (u / 2) === 0;
     const h = big ? 14 : mid ? 10 : 6;
@@ -510,9 +544,11 @@ function pick() {
 // すうちょくせんを タップ・ドラッグしても うごかせる
 function lineToNum(e) {
   const rect = $("nl").getBoundingClientRect();
-  const x = ((e.clientX - rect.left) / rect.width) * 640;
-  return lab.min + ((x - 30) / 580) * (lab.max - lab.min);
+  const W = lineW();
+  const x = ((e.clientX - rect.left) / rect.width) * W;
+  return lab.min + ((x - 20) / (W - 40)) * (lab.max - lab.min);
 }
+window.addEventListener("resize", () => { if (!$("lab").hidden) drawLine(); });
 let dragging = false;
 $("nl").addEventListener("pointerdown", (e) => { dragging = true; $("nl").setPointerCapture(e.pointerId); setV(lineToNum(e), false); });
 $("nl").addEventListener("pointermove", (e) => { if (dragging) setV(lineToNum(e), false); });
