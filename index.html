@@ -176,6 +176,11 @@ main{max-width:1100px;margin:0 auto;padding:24px}
 @media(max-width:820px){.sound-bar{padding:0 16px;justify-content:center}.sound-bar button,.sound-bar summary{font-size:13px;padding:9px 12px}.sound-levels .levels{gap:12px;justify-content:center}.sound-levels label{width:min(100%,280px);min-width:0}.sound-status{text-align:center}}
 
 .engine{border:0;background:transparent;padding:0;cursor:pointer;color:inherit}.engine:focus-visible{outline:3px solid #2e93dd;outline-offset:4px;border-radius:12px}.engine::before,.engine::after{z-index:1;pointer-events:none}.audio-credits{max-width:1000px;margin:16px auto;padding:0 16px 20px;color:var(--mute);font-size:12px}.audio-credits summary{cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center}.audio-credits a{text-decoration:underline}
+
+/* The rail itself scrolls; the track stays underneath the wheels. */
+.rail{overflow-x:auto;overflow-y:hidden;touch-action:pan-x pan-y;user-select:none;-webkit-user-select:none;scrollbar-width:none;cursor:grab;background-image:linear-gradient(var(--ink),var(--ink)),linear-gradient(var(--ink),var(--ink)),repeating-linear-gradient(90deg,transparent 0 20px,var(--ink) 20px 24px);background-position:left bottom 22px,left bottom 16px,left bottom 16px;background-size:100% 2px,100% 2px,100% 8px;background-repeat:no-repeat}
+.rail::-webkit-scrollbar{display:none}.rail::after{display:none}.rail .train{animation:none}.rail .car{flex-shrink:0;cursor:grab}.rail img{-webkit-user-drag:none}.rail.dragging,.rail.dragging .car,.rail.dragging .engine{cursor:grabbing}.rail:focus-visible{outline:3px solid #2e93dd;outline-offset:-3px}
+
 </style>
 </head>
 <body>
@@ -312,9 +317,102 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "ArrowLeft") flip(-1); else if (e.key === "ArrowRight") flip(1);
 });
 
+// Native touch scrolling, mouse dragging and a continuous automatic loop.
+let stopPlazaTrain = () => {};
+function setupPlazaTrain() {
+  const rail = document.querySelector('.rail');
+  if (!rail) return;
+  const train = rail.querySelector('.train');
+  const groupSize = train.children.length / 2;
+  if (!Number.isInteger(groupSize) || !groupSize) return;
+  const group = [...train.children].slice(0, groupSize);
+  const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let period = 0, groups = 2, pointer = null, moved = false, suppressClick = false;
+  let startX = 0, startScroll = 0, hovering = false, touching = false, focused = false;
+  let pauseUntil = 0, frame = null, previous = null, lastScroll = 0;
+  const pause = () => { pauseUntil = performance.now() + 1800; };
+  const wrap = value => period + ((value - period) % period + period) % period;
+  function measure() {
+    const width = train.children[groupSize].offsetLeft - train.children[0].offsetLeft;
+    if (width <= 0) return;
+    period = width;
+    // Keep a complete repeated view on both sides, even on wide PC screens.
+    const needed = Math.ceil(rail.clientWidth / period) + 3;
+    while (groups < needed) {
+      for (const child of group) {
+        const clone = child.cloneNode(true);
+        clone.setAttribute('aria-hidden', 'true'); clone.tabIndex = -1;
+        clone.querySelectorAll('a,button').forEach(el => { el.tabIndex = -1; });
+        train.appendChild(clone);
+      }
+      groups++;
+    }
+    rail.scrollLeft = wrap(rail.scrollLeft);
+    lastScroll = rail.scrollLeft;
+  }
+  rail.setAttribute('role', 'region'); rail.tabIndex = 0;
+  measure();
+  rail.addEventListener('dragstart', e => e.preventDefault());
+  rail.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') hovering = true; });
+  rail.addEventListener('pointerleave', e => {
+    if (e.pointerType === 'mouse') hovering = false;
+    if (!moved) finish(e);
+  });
+  rail.addEventListener('focusin', () => { focused = true; });
+  rail.addEventListener('focusout', e => { focused = rail.contains(e.relatedTarget); pause(); });
+  rail.addEventListener('touchstart', () => { touching = true; pause(); }, { passive: true });
+  for (const name of ['touchend', 'touchcancel']) rail.addEventListener(name, () => { touching = false; pause(); }, { passive: true });
+  rail.addEventListener('wheel', pause, { passive: true });
+  rail.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'touch' || e.isPrimary === false || e.button !== 0 || pointer !== null) return;
+    pointer = e.pointerId; startX = e.clientX; startScroll = rail.scrollLeft;
+    moved = false; suppressClick = false; pause();
+  });
+  rail.addEventListener('pointermove', e => {
+    if (e.pointerId !== pointer || !period) return;
+    const dx = e.clientX - startX;
+    if (!moved && Math.abs(dx) < 6) return;
+    if (!moved) { moved = true; rail.setPointerCapture(pointer); rail.classList.add('dragging'); }
+    e.preventDefault();
+    rail.scrollLeft = wrap(startScroll - dx);
+    pause();
+  });
+  function finish(e) {
+    if (e.pointerId !== pointer) return;
+    const id = pointer; pointer = null; suppressClick = moved;
+    rail.classList.remove('dragging');
+    if (rail.hasPointerCapture(id)) rail.releasePointerCapture(id);
+    pause();
+  }
+  for (const name of ['pointerup', 'pointercancel', 'lostpointercapture']) rail.addEventListener(name, finish);
+  rail.addEventListener('click', e => {
+    if (!suppressClick || e.detail === 0) return;
+    e.preventDefault(); e.stopPropagation(); suppressClick = false;
+  }, true);
+  rail.addEventListener('keydown', e => {
+    if (e.target !== rail || !period || !['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+    e.preventDefault(); rail.scrollLeft = wrap(rail.scrollLeft + (e.key === 'ArrowRight' ? 224 : -224)); pause();
+  });
+  function tick(now) {
+    const elapsed = previous === null ? 0 : Math.min(now - previous, 50); previous = now;
+    if (!period) measure();
+    if (Math.abs(rail.scrollLeft - lastScroll) > .1) pause();
+    if (period && pointer === null && !touching && now >= pauseUntil) {
+      if (!hovering && !focused && !motion.matches) rail.scrollLeft = wrap(rail.scrollLeft + period * elapsed / 40000);
+      else if (!hovering && !focused) rail.scrollLeft = wrap(rail.scrollLeft);
+    }
+    lastScroll = rail.scrollLeft;
+    frame = requestAnimationFrame(tick);
+  }
+  window.addEventListener('resize', measure);
+  frame = requestAnimationFrame(tick);
+  stopPlazaTrain = () => { cancelAnimationFrame(frame); window.removeEventListener('resize', measure); };
+}
+
 /* ---------- 表示 ---------- */
 let first = true;
 function render() {
+  stopPlazaTrain();
   const h = location.hash.slice(1);
   const a = h.startsWith("app/") ? APPS.find((x) => x.id === h.slice(4)) : null;
   const z = a ? null : zoneOf(h);
@@ -324,6 +422,7 @@ function render() {
   document.body.classList.toggle("boardpage", !!(a || z));
   document.body.style.setProperty("--zs", (a ? zoneOf(a.zone) : z || ZONES[0]).soft);
   $("app").innerHTML = a ? vApp(a) : z ? vZone(z) : vTop();
+  setupPlazaTrain();
   first = false;
   window.scrollTo(0, 0);
 }
