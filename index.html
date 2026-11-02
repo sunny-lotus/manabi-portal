@@ -207,6 +207,9 @@ const ZONES = [
 ];
 // アプリを足すときは、ここに 1つ足して、写真を common/shots/ に入れる
 const APPS = [
+  { id: "manabi-champions", zone: "bouken", name: "まなびチャンピオンズ", tags: ["2人対戦", "QR"], href: "https://sunny-lotus.github.io/manabi-champions/",
+    shots: ["manabi-champions"],
+    desc: "学びクエストの QRで、育てた チームを よみこもう。はなまらいおんと 仲間2人で、友だちと 1台の たんまつで 対戦できるよ。" },
   { id: "sansu-mori", zone: "sansu", name: "さんすうの森", tags: ["4年", "算数", "がい数"], href: "https://sunny-lotus.github.io/sansu-mori/", canva: "https://penguin-90wz32.my.canva.site/dahzrpjv98e",
     shots: ["sm-forest", "sm-map", "sm-c2", "sm-site"],
     desc: "ゆっくり 学ぶ 算数の 森。問題を とくと 材料が もらえて、自分の キャンプ場が すこしずつ 大きく なるよ。まちがえても、らいおんが すぐ 横で 助けて くれる。" },
@@ -299,7 +302,7 @@ function vApp(a) {
         <p class="k">${esc(a.desc)}</p>
         <div class="acts">
           <a class="play-btn lift" href="${esc(a.href)}">あそぶ <span>▶</span></a>
-          ${a.canva ? `<a class="canva lift" href="${esc(a.canva)}" target="_blank" rel="noopener">Canva版で ひらく <span>▶</span></a>` : `<span class="canva">Canva版（じゅんびちゅう）</span>`}
+          ${a.id === "manabi-champions" ? "" : a.canva ? `<a class="canva lift" href="${esc(a.canva)}" target="_blank" rel="noopener">Canva版で ひらく <span>▶</span></a>` : `<span class="canva">Canva版（じゅんびちゅう）</span>`}
         </div>
       </section>
     </div></main>`;
