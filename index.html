@@ -483,7 +483,7 @@ const plazaSound = (() => {
     const context = new Audio(), bgm = context.createGain(), se = context.createGain();
     const filter = context.createBiquadFilter(); filter.type = "lowpass"; filter.frequency.value = 6000;
     bgm.connect(filter); filter.connect(context.destination); se.connect(context.destination);
-    engine = { context, bgm, se, samples: new Map(), loads: new Map() };
+    engine = { context, bgm, se, samples: new Map(), loads: new Map(), bgmPrepared: false };
     volume();
     context.onstatechange = () => {
       if (context.state !== "running") stopMusic();
@@ -518,6 +518,7 @@ const plazaSound = (() => {
       }
       return e.loads.get(item.id);
     }));
+    if (kind === 'bgm') e.bgmPrepared = true;
     return results.every(result => result.status === 'fulfilled');
   }
   function recordedNote(instrument, midi, start, duration, level, kind, part = '') {
@@ -572,7 +573,7 @@ const plazaSound = (() => {
     }
   }
   function startMusic() {
-    if (timer !== null || !prefs.bgm || !engine || engine.context.state !== "running" || document.hidden) return;
+    if (timer !== null || !prefs.bgm || !engine || !engine.bgmPrepared || engine.context.state !== "running" || document.hidden) return;
     cursor = 0; nextTime = engine.context.currentTime + .04;
     timer = window.setInterval(schedule, 80); schedule();
   }
