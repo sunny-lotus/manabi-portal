@@ -196,7 +196,7 @@ main{max-width:1100px;margin:0 auto;padding:24px}
   <p class="sound-status" id="sound-status" role="status" aria-live="polite">音は ボタンで ONにできるよ。</p>
 </section>
 <div id="app"></div>
-<details class="audio-credits"><summary>音の素材</summary><p>録音楽器と汽笛：<a href="https://versilian-studios.com/vcsl/" target="_blank" rel="noopener">Versilian Community Sample Library（VCSL）</a>／Versilian Studios・協力演奏者。CC0 1.0。音の先頭と長さを調整し、モノラル・22.05 kHzへ変換。曲はこのひろば用のオリジナルです。</p></details>
+<details class="audio-credits"><summary>音の素材</summary><p>BGM：ケルト風の街BGM（v30）。楽器素材：VCSL、VSCO 2 CE、hammondman / Freesound。<a href="https://github.com/sunny-lotus/manabi-portal/blob/main/docs/audio/CELTIC-v30.md" target="_blank" rel="noopener">曲の制作・採用記録</a>。効果音と汽笛：<a href="https://versilian-studios.com/vcsl/" target="_blank" rel="noopener">VCSL</a>（CC0 1.0）。</p></details>
 
 <script src="https://sunny-lotus.github.io/manabi-portal/common/lions.js"></script>
 <script>
@@ -484,9 +484,8 @@ const plazaSound = (() => {
     const Audio = window.AudioContext || window.webkitAudioContext;
     if (!Audio) throw Error("このブラウザでは 音を使えません。");
     const context = new Audio(), bgm = context.createGain(), se = context.createGain();
-    const filter = context.createBiquadFilter(); filter.type = "lowpass"; filter.frequency.value = 6000;
-    bgm.connect(filter); filter.connect(context.destination); se.connect(context.destination);
-    engine = { context, bgm, se, samples: new Map(), loads: new Map(), bgmPrepared: false };
+    bgm.connect(context.destination); se.connect(context.destination);
+    engine = { context, bgm, se, samples: new Map(), loads: new Map(), bgmPrepared: false, bgmBuffer: null, bgmLoad: null };
     volume();
     context.onstatechange = () => {
       if (context.state !== "running") stopMusic();
@@ -506,6 +505,20 @@ const plazaSound = (() => {
   }
   async function loadRecordings(kind) {
     const e = engine;
+    if (kind === 'bgm') {
+      if (e.bgmBuffer) return true;
+      if (!e.bgmLoad) e.bgmLoad = (async () => {
+        try {
+          const response = await fetch('common/audio/plaza-celtic-v30.mp3');
+          if (!response.ok) throw Error('BGMを読み込めませんでした');
+          const buffer = await e.context.decodeAudioData(await response.arrayBuffer());
+          if (!Number.isFinite(buffer.duration) || buffer.duration < 68.5) throw Error('BGMの長さを確認できませんでした');
+          e.bgmBuffer = buffer; return true;
+        } catch (_) { e.bgmLoad = null; return false; }
+        finally { e.bgmPrepared = true; }
+      })();
+      return e.bgmLoad;
+    }
     const needed = recordings.filter(item => kind === 'bgm' ? item.instrument !== 'whistle' : item.id === 'glock-c5' || item.instrument === 'whistle');
     const results = await Promise.allSettled(needed.map(item => {
       if (e.samples.has(item.id)) return Promise.resolve();
@@ -577,6 +590,17 @@ const plazaSound = (() => {
   }
   function startMusic() {
     if (timer !== null || !prefs.bgm || !engine || !engine.bgmPrepared || engine.context.state !== "running" || document.hidden) return;
+    if (engine.bgmBuffer) {
+      const source = engine.context.createBufferSource(), gain = engine.context.createGain(), t = engine.context.currentTime + .04;
+      source.buffer = engine.bgmBuffer; source.loop = true; source.loopStart = 0;
+      source.loopEnd = Math.min(480 / 7, engine.bgmBuffer.duration);
+      gain.gain.setValueAtTime(.0001, t); gain.gain.linearRampToValueAtTime(1, t + .08);
+      source.connect(gain); gain.connect(engine.bgm); active.bgm.add(source);
+      source.onended = () => { active.bgm.delete(source); source.disconnect(); gain.disconnect(); };
+      source.start(t);
+      timer = window.setInterval(() => { if (!prefs.bgm || document.hidden || engine.context.state !== 'running') stopMusic(); }, 500);
+      return;
+    }
     cursor = 0; nextTime = engine.context.currentTime + .04;
     timer = window.setInterval(schedule, 80); schedule();
   }
@@ -659,3 +683,4 @@ render();
 </script>
 </body>
 </html>
+
