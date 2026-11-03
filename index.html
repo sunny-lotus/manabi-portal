@@ -196,7 +196,7 @@ main{max-width:1100px;margin:0 auto;padding:24px}
   <p class="sound-status" id="sound-status" role="status" aria-live="polite">音は ボタンで ONにできるよ。</p>
 </section>
 <div id="app"></div>
-<details class="audio-credits"><summary>音の素材</summary><p>BGM：ケルト風の街BGM（v30）。楽器素材：VCSL、VSCO 2 CE、hammondman / Freesound。<a href="https://github.com/sunny-lotus/manabi-portal/blob/main/docs/audio/CELTIC-v30.md" target="_blank" rel="noopener">曲の制作・採用記録</a>。効果音と汽笛：<a href="https://versilian-studios.com/vcsl/" target="_blank" rel="noopener">VCSL</a>（CC0 1.0）。</p></details>
+<details class="audio-credits"><summary>音の素材</summary><p>BGM：ケルト風の街BGM（v30）。楽器素材：VCSL、VSCO 2 CE、hammondman / Freesound。<a href="https://github.com/sunny-lotus/manabi-portal/blob/main/docs/audio/CELTIC-v30.md" target="_blank" rel="noopener">曲の制作・採用記録</a>。効果音と汽笛：<a href="https://versilian-studios.com/vcsl/" target="_blank" rel="noopener">VCSL</a>（CC0 1.0）。効果音には、少しずつ小さくなるやわらかいエコーを付けています。</p></details>
 
 <script src="https://sunny-lotus.github.io/manabi-portal/common/lions.js"></script>
 <script>
@@ -484,14 +484,38 @@ const plazaSound = (() => {
     const Audio = window.AudioContext || window.webkitAudioContext;
     if (!Audio) throw Error("このブラウザでは 音を使えません。");
     const context = new Audio(), bgm = context.createGain(), se = context.createGain();
-    bgm.connect(context.destination); se.connect(context.destination);
+    bgm.connect(context.destination);
     engine = { context, bgm, se, samples: new Map(), loads: new Map(), bgmPrepared: false, bgmBuffer: null, bgmLoad: null };
+    connectEffects();
     volume();
     context.onstatechange = () => {
       if (context.state !== "running") stopMusic();
       else if (!document.hidden && prefs.bgm) startMusic();
     };
     return engine;
+  }
+  // Damped, finite echoes: each repeat becomes quieter and softer.
+  function connectEffects() {
+    if (!engine || engine.echoGraph) return;
+    const {context, se} = engine, dry = context.createGain();
+    dry.gain.value = .90; se.connect(dry); dry.connect(context.destination);
+    const nodes = [dry];
+    for (const [seconds, level, cutoff] of [[.22,.26,4600],[.44,.14,3500],[.68,.07,2700]]) {
+      const delay = context.createDelay(1), filter = context.createBiquadFilter(), gain = context.createGain();
+      delay.delayTime.value = seconds;
+      filter.type = 'lowpass'; filter.frequency.value = cutoff; filter.Q.value = .5;
+      gain.gain.value = level;
+      se.connect(delay); delay.connect(filter); filter.connect(gain); gain.connect(context.destination);
+      nodes.push(delay, filter, gain);
+    }
+    engine.echoGraph = nodes;
+  }
+  function clearEffects() {
+    if (!engine || !engine.echoGraph) return;
+    // Dropping the graph clears buffered repeats immediately on mute/background.
+    engine.se.disconnect();
+    for (const node of engine.echoGraph) node.disconnect();
+    engine.echoGraph = null;
   }
   function volume() {
     if (!engine) return;
@@ -570,6 +594,7 @@ const plazaSound = (() => {
   function stopVoices(kind) {
     for (const source of active[kind]) { try { source.stop(); } catch (_) {} }
     active[kind].clear();
+    if (kind === "se") clearEffects();
   }
   function schedule() {
     if (!engine || engine.context.state !== "running" || document.hidden || !prefs.bgm) { stopMusic(); return; }
@@ -610,6 +635,7 @@ const plazaSound = (() => {
   }
   function effect(kind = "move") {
     if (!prefs.se || !engine || engine.context.state !== "running" || document.hidden || performance.now() - lastSE < 55) return;
+    connectEffects();
     lastSE = performance.now();
     if (kind === 'whistle') {
       if (performance.now() - lastWhistle < 850) return;
@@ -683,4 +709,5 @@ render();
 </script>
 </body>
 </html>
+
 
