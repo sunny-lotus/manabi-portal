@@ -1,0 +1,36 @@
+[
+  {
+    "file": "common/audio/plaza-back-footsteps-v1.wav",
+    "seconds": 2.0,
+    "peak": 0.3510828286361262,
+    "bytes": 176444,
+    "sha256": "06c77de2a5dcd3daa73bc50a9ad61524bfaca43f38c131f96542333a852ac936",
+    "source": {
+      "author": "Kenney",
+      "page": "https://kenney.nl/assets/impact-sounds",
+      "files": [
+        "Audio/footstep_wood_000.ogg",
+        "Audio/footstep_wood_001.ogg",
+        "Audio/footstep_wood_002.ogg",
+        "Audio/footstep_wood_003.ogg",
+        "Audio/footstep_wood_004.ogg"
+      ]
+    },
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "common/audio/plaza-enter-doorbell-v1.wav",
+    "seconds": 3.533469387755102,
+    "peak": 0.42,
+    "bytes": 155870,
+    "sha256": "3228a968fd54c6e04eec60aa45ab797cf615d2389a744675978f4bb48f2ac844",
+    "source": {
+      "author": "Joseph SARDIN / BigSoundBank",
+      "page": "https://bigsoundbank.com/carillon-commercant-s3588.html",
+      "id": 3588,
+      "originalSha256": "3aee14bde01ed5cee2aefd092b6e1710877b132d2edc463acd85d4a071afdd16",
+      "processing": "Trim outer silence, mono 22.05 kHz, level adjustment and short fades. Original pitch and ringing rhythm retained."
+    },
+    "license": "CC0-1.0"
+  }
+]
