@@ -1,0 +1,149 @@
+{
+  "checked": "2026-11-24",
+  "music": [
+    {
+      "id": "team-challenge",
+      "name": "はなまるチームチャレンジ",
+      "title": "Carefree",
+      "stem": "team",
+      "author": "Kevin MacLeod",
+      "license": "CC-BY-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "sourcePage": "https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1400037",
+      "download": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Carefree.mp3",
+      "isrc": "USUAN1400037",
+      "instruments": "Ukulele, Guitar, Marimba, Glockenspiel, Percussion",
+      "bpm": "96",
+      "sourceSha256": "8433b770a630d9b1594fd484442c677907ece899a4d149954cd2e74fd733e311",
+      "file": "common/audio/three-games/team-bgm.mp3",
+      "sha256": "551a289c45a00fa9f5dbbbc5e163a9806c31f815aba25369fc6b6a7095052747",
+      "changes": "Leading/trailing silence trimmed; loudness adjusted toward -18 LUFS with -2 dBTP target; metadata removed; resampled to stereo 32 kHz / MP3 96 kbps. Playback overlaps the end and beginning for 0.7 seconds; music starts with a fade."
+    },
+    {
+      "id": "sentence-hunter",
+      "name": "センテンスハンター",
+      "title": "Investigations",
+      "stem": "hunter",
+      "author": "Kevin MacLeod",
+      "license": "CC-BY-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "sourcePage": "https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100646",
+      "download": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Investigations.mp3",
+      "isrc": "USUAN1100646",
+      "instruments": "Pizzicato Strings, English Horn, Bassoon, Marimba, Glockenspiel, Cowbells",
+      "bpm": "94",
+      "sourceSha256": "699f7a3cd227dfe5c1e88099b45af57202bfe9d56f86b8b43e4252b65dd96768",
+      "file": "common/audio/three-games/hunter-bgm.mp3",
+      "sha256": "5edf57a3f008c91c10ceacf100c9c7d99971116617e9196b34351759b7cb674f",
+      "changes": "Leading/trailing silence trimmed; loudness adjusted toward -18 LUFS with -2 dBTP target; metadata removed; resampled to stereo 32 kHz / MP3 96 kbps. Playback overlaps the end and beginning for 0.7 seconds; music starts with a fade."
+    },
+    {
+      "id": "jukugo-clinic",
+      "name": "熟語クリニック",
+      "title": "Local Forecast",
+      "stem": "clinic",
+      "author": "Kevin MacLeod",
+      "license": "CC-BY-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "sourcePage": "https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1300010",
+      "download": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Local%20Forecast.mp3",
+      "isrc": "USUAN1300010",
+      "instruments": "Piano, Bass, Drum Kit, Electric Piano, Flute, Trumpet, Percussion, Guitar",
+      "bpm": "93",
+      "sourceSha256": "c0b120cb91a62468f5024162c8942dd2310696c076b6a1df2b88892350575b87",
+      "file": "common/audio/three-games/clinic-bgm.mp3",
+      "sha256": "66c3ed8aaca81914711e6c013180b407419593d8bb9de234c81d3903bde2b232",
+      "changes": "Leading/trailing silence trimmed; loudness adjusted toward -18 LUFS with -2 dBTP target; metadata removed; resampled to stereo 32 kHz / MP3 96 kbps. Playback overlaps the end and beginning for 0.7 seconds; music starts with a fade."
+    }
+  ],
+  "effects": [
+    {
+      "id": "correct",
+      "file": "common/audio/three-games/correct.wav",
+      "author": "Kenney",
+      "license": "CC0-1.0",
+      "sourcePage": "https://kenney.nl/assets/interface-sounds",
+      "originalFile": "Audio/confirmation_002.ogg",
+      "originalSha256": "33b17a9a9a2397c62b285c52c33a907fdffb476909c99e42dde603f6a7a8b12c",
+      "sha256": "61ffeafd17ddca59fcfe8b0ad4e33a31bae8b1edf4a9dee8834eca6f3f950437",
+      "changes": "Previously trimmed/level-adjusted PCM WAV from the documented source. Team Challenge sequences wood hits; rattle playback is quieter."
+    },
+    {
+      "id": "retry",
+      "file": "common/audio/three-games/retry.wav",
+      "author": "Kenney",
+      "license": "CC0-1.0",
+      "sourcePage": "https://kenney.nl/assets/interface-sounds",
+      "originalFile": "Audio/question_002.ogg",
+      "originalSha256": "46056f10c70dda860e93bd27b66f4d33c0b7154eff28def06471b50028efa5b3",
+      "sha256": "f9b9085a7729784411b9b0d0c0805fc1511bd09b78113d7c57fadfdf90cc4773",
+      "changes": "Previously trimmed/level-adjusted PCM WAV from the documented source. Team Challenge sequences wood hits; rattle playback is quieter."
+    },
+    {
+      "id": "click",
+      "file": "common/audio/three-games/click.wav",
+      "author": "Kenney",
+      "license": "CC0-1.0",
+      "sourcePage": "https://kenney.nl/assets/interface-sounds",
+      "originalFile": "Audio/click_001.ogg",
+      "originalSha256": "ccfb7fa0cccdd9faec0eb16033c732b1e308d139d80f799161495d58f7adcdb9",
+      "sha256": "9336fb0a76408d03dcb46fbc6ac05e632401e6034051602065ab292791925975",
+      "changes": "Previously trimmed/level-adjusted PCM WAV from the documented source. Team Challenge sequences wood hits; rattle playback is quieter."
+    },
+    {
+      "id": "select",
+      "file": "common/audio/three-games/select.wav",
+      "author": "Kenney",
+      "license": "CC0-1.0",
+      "sourcePage": "https://kenney.nl/assets/interface-sounds",
+      "originalFile": "Audio/confirmation_001.ogg",
+      "originalSha256": "063564703b6094d70718a3e787a55cc9141611e4ecd6b6637f8828f79b4a8c3a",
+      "sha256": "fd0ee9c75e05942824dc3fa766855914afcea67e20611eb961d7d15dd951559d",
+      "changes": "Previously trimmed/level-adjusted PCM WAV from the documented source. Team Challenge sequences wood hits; rattle playback is quieter."
+    },
+    {
+      "id": "complete",
+      "file": "common/audio/three-games/complete.wav",
+      "author": "Kenney",
+      "license": "CC0-1.0",
+      "sourcePage": "https://kenney.nl/assets/interface-sounds",
+      "originalFile": "Audio/confirmation_004.ogg",
+      "originalSha256": "568967a3d9f8a8f6af54ea01729c4882284308f2a27d78c07ffd7ee0d6951661",
+      "sha256": "c6ea3a1671062c6e7d3249b7b603bd03dfe41a97df7c4892ae503efff24e0665",
+      "changes": "Previously trimmed/level-adjusted PCM WAV from the documented source. Team Challenge sequences wood hits; rattle playback is quieter."
+    },
+    {
+      "id": "back",
+      "file": "common/audio/three-games/back.wav",
+      "author": "Kenney",
+      "license": "CC0-1.0",
+      "sourcePage": "https://kenney.nl/assets/rpg-audio",
+      "originalFile": "Audio/bookFlip1.ogg",
+      "originalSha256": "fa81ac2fedc8c641661b87e349630a36c9800e795e0c800e029214efdbe26a7d",
+      "sha256": "8ad394bb75a920110980113234588ccfa8e7f177652ad4f47138f57a15b3218e",
+      "changes": "Previously trimmed/level-adjusted PCM WAV from the documented source. Team Challenge sequences wood hits; rattle playback is quieter."
+    },
+    {
+      "id": "wood",
+      "file": "common/audio/three-games/wood.wav",
+      "author": "Kenney",
+      "license": "CC0-1.0",
+      "sourcePage": "https://kenney.nl/assets/impact-sounds",
+      "originalFile": "Audio/impactWood_light_001.ogg",
+      "originalSha256": "4b76bf3ccc8e60d19188f3165b778a7817786faa6887c55d9049bcbeef3b425f",
+      "sha256": "e17db1977a31d29f88a90d2ccd3abb283395cd36f4488c13a9447415bc332c05",
+      "changes": "Previously trimmed/level-adjusted PCM WAV from the documented source. Team Challenge sequences wood hits; rattle playback is quieter."
+    },
+    {
+      "id": "rattle",
+      "file": "common/audio/three-games/rattle.wav",
+      "author": "Kenney",
+      "license": "CC0-1.0",
+      "sourcePage": "https://kenney.nl/assets/impact-sounds",
+      "originalFile": "Audio/impactWood_medium_000.ogg",
+      "originalSha256": "1723a9fd25103ed41af06054814e84e65f4a772bac86ab2dc927da93d9592ff5",
+      "sha256": "57ca3b78cbf3e0d9cd676ca04fe29b7d1edf67e7b88dd3501e59fca200e046a9",
+      "changes": "Previously trimmed/level-adjusted PCM WAV from the documented source. Team Challenge sequences wood hits; rattle playback is quieter."
+    }
+  ]
+}

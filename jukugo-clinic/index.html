@@ -301,6 +301,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 <div id="cv-toast" hidden></div>
 </div>
 
+<script src="../common/audio/three-games.js"></script>
 <script>
 /* QRCode for JavaScript — Copyright (c) 2009 Kazuhiko Arase, MIT license (via qrcode-terminal, Apache-2.0). "QR Code" is a registered trademark of DENSO WAVE INCORPORATED. */
 const QRLib = (function(){
@@ -1833,22 +1834,16 @@ function cured(){ return new Set(load().cured || []); }
 function addCured(w){ const d = load(); const s = new Set(d.cured || []); s.add(w); d.cured = [...s]; store(d); }
 const starText = n => "★".repeat(n) + "<span class='off'>" + "★".repeat(3 - n) + "</span>";
 
-/* ---- 音（ファイルなし） ---- */
-let soundOn = false, actx = null;
-function tone(notes, type, gap){
-  if (!soundOn) return;
-  try{
-    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
-    notes.forEach((f, i) => {
-      const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + i * (gap || .11);
-      o.type = type || "triangle"; o.frequency.value = f;
-      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.12, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .2);
-      o.connect(g).connect(actx.destination); o.start(t); o.stop(t + .22);
-    });
-  }catch(e){}
-}
-const snd = {ok: () => tone([659, 880, 1175]), ng: () => tone([240, 190], "square"), in: () => tone([523, 659], "sine", .08), end: () => tone([784, 523, 392]), win: () => tone([523, 659, 784, 1047])};
-$("sndBtn").onclick = () => { soundOn = !soundOn; $("sndBtn").textContent = soundOn ? "音 ON" : "音 OFF"; snd.in(); };
+/* recorded-audio-start */
+const gameSound = createLearningAudio({"id":"jukugo-clinic","title":"Local Forecast","assets":{"bgm":"../common/audio/three-games/clinic-bgm.mp3","correct":"../common/audio/three-games/correct.wav","retry":"../common/audio/three-games/retry.wav","click":"../common/audio/three-games/click.wav","select":"../common/audio/three-games/select.wav","complete":"../common/audio/three-games/complete.wav","back":"../common/audio/three-games/back.wav","wood":"../common/audio/three-games/wood.wav","rattle":"../common/audio/three-games/rattle.wav"}});
+const snd = {
+  ok: () => gameSound.effect('correct'),
+  ng: () => gameSound.effect('retry'),
+  in: () => gameSound.effect('select'),
+  end: () => gameSound.effect('back'),
+  win: () => gameSound.effect('complete')
+};
+/* recorded-audio-end */
 
 /* ---- 演出 ---- */
 let fxT = [];

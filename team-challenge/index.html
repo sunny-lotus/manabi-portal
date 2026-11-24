@@ -275,6 +275,7 @@ button{cursor:pointer}
 <div id="cv-toast" hidden></div>
 </div>
 
+<script src="../common/audio/three-games.js"></script>
 <script>
 /* QRCode for JavaScript — Copyright (c) 2009 Kazuhiko Arase, MIT license (via qrcode-terminal, Apache-2.0). "QR Code" is a registered trademark of DENSO WAVE INCORPORATED. */
 const QRLib = (function(){
@@ -1794,23 +1795,17 @@ function store(d){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(d)); }catc
 function best(id){ return (load().best || {})[id] || 0; }
 function saveBest(id, v){ const d = load(); d.best = d.best || {}; const old = d.best[id] || 0; if (v > old){ d.best[id] = v; store(d); } return {old, isNew: v > old && v > 0}; }
 
-/* ---- 音（ファイルなし） ---- */
-let soundOn = false, actx = null;
-function tone(notes, type, gap, len){
-  if (!soundOn) return;
-  try{
-    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
-    notes.forEach((f, i) => {
-      const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + i * (gap || .12), L = len || .22;
-      o.type = type || "triangle"; o.frequency.value = f;
-      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.13, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + L);
-      o.connect(g).connect(actx.destination); o.start(t); o.stop(t + L + .02);
-    });
-  }catch(e){}
-}
-const snd = {ok: () => tone([988, 784], "sine", .16, .35), ng: () => tone([180, 150], "square", .18, .35), tick: () => tone([660], "triangle", .1, .08),
-  fan: () => tone([523, 659, 784, 1047, 784, 1047], "triangle", .12, .25), roll: () => tone(Array(10).fill(0).map((_, i) => 300 + i * 20), "square", .07, .05), crash: () => tone([200, 140, 90], "sawtooth", .1, .25)};
-$("sndBtn").onclick = () => { soundOn = !soundOn; $("sndBtn").textContent = soundOn ? "音 ON" : "音 OFF"; snd.tick(); };
+/* recorded-audio-start */
+const gameSound = createLearningAudio({"id":"team-challenge","title":"Carefree","assets":{"bgm":"../common/audio/three-games/team-bgm.mp3","correct":"../common/audio/three-games/correct.wav","retry":"../common/audio/three-games/retry.wav","click":"../common/audio/three-games/click.wav","select":"../common/audio/three-games/select.wav","complete":"../common/audio/three-games/complete.wav","back":"../common/audio/three-games/back.wav","wood":"../common/audio/three-games/wood.wav","rattle":"../common/audio/three-games/rattle.wav"}});
+const snd = {
+  ok: () => gameSound.effect('correct'),
+  ng: () => gameSound.effect('retry'),
+  tick: () => gameSound.effect('click'),
+  fan: () => gameSound.effect('complete'),
+  roll: () => gameSound.effect('wood', { repeats: 5, gap: .075, gain: .55 }),
+  crash: () => gameSound.effect('rattle', { gain: .65 })
+};
+/* recorded-audio-end */
 
 /* ---- 演出 ---- */
 let fxT = [];

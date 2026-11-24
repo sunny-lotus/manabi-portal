@@ -328,6 +328,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 <div id="cv-toast" hidden></div>
 </div>
 
+<script src="../common/audio/three-games.js"></script>
 <script>
 /* QRCode for JavaScript — Copyright (c) 2009 Kazuhiko Arase, MIT license (via qrcode-terminal, Apache-2.0). "QR Code" is a registered trademark of DENSO WAVE INCORPORATED. */
 const QRLib = (function(){
@@ -1787,33 +1788,14 @@ function saveRecord(id, rec){
 }
 const starText = n => "★".repeat(n) + "<span class='off'>" + "★".repeat(3 - n) + "</span>";
 
-/* ---- 音（ファイルなし） ---- */
-let soundOn = false, actx = null;
-function beep(kind){
-  if (!soundOn) return;
-  try{
-    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
-    const notes = kind === "ok" ? [660, 880] : kind === "win" ? [523, 659, 784, 1047] : kind === "end" ? [784, 523, 392] : [220, 180];
-    notes.forEach((f, i) => {
-      const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + i * 0.11;
-      o.type = kind === "ng" ? "square" : "triangle"; o.frequency.value = f;
-      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.12, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
-      o.connect(g).connect(actx.destination); o.start(t); o.stop(t + 0.2);
-    });
-  }catch(e){}
+/* recorded-audio-start */
+const gameSound = createLearningAudio({"id":"sentence-hunter","title":"Investigations","assets":{"bgm":"../common/audio/three-games/hunter-bgm.mp3","correct":"../common/audio/three-games/correct.wav","retry":"../common/audio/three-games/retry.wav","click":"../common/audio/three-games/click.wav","select":"../common/audio/three-games/select.wav","complete":"../common/audio/three-games/complete.wav","back":"../common/audio/three-games/back.wav","wood":"../common/audio/three-games/wood.wav","rattle":"../common/audio/three-games/rattle.wav"}});
+function beep(kind) {
+  const effects = { ok: 'correct', ng: 'retry', win: 'complete', end: 'back' };
+  void gameSound.effect(effects[kind] || 'click');
 }
-function shot(){   /* ヒュッ → キラン（ファイルなし） */
-  if (!soundOn) return;
-  try{
-    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
-    const o = actx.createOscillator(), g = actx.createGain(), t0 = actx.currentTime;
-    o.type = "sine"; o.frequency.setValueAtTime(500, t0); o.frequency.exponentialRampToValueAtTime(1600, t0 + 0.28);
-    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.08, t0 + 0.05); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.3);
-    o.connect(g).connect(actx.destination); o.start(t0); o.stop(t0 + 0.32);
-  }catch(e){}
-  setTimeout(() => beep("ok"), 300);
-}
-$("sndBtn").onclick = () => { soundOn = !soundOn; $("sndBtn").textContent = soundOn ? "音 ON" : "音 OFF"; beep("ok"); };
+function shot() { void gameSound.effect('correct'); }
+/* recorded-audio-end */
 
 /* ---- ヒット！の演出（上に重ねるが、タッチはじゃましない） ---- */
 let fxT = [];

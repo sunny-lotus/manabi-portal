@@ -1,0 +1,58 @@
+3つの教材 音源の採用・利用条件の確認記録
+確認日 2026年11月24日
+
+BGM
+はなまるチームチャレンジ
+“Carefree” — Kevin MacLeod (incompetech.com)
+Licensed under Creative Commons Attribution 4.0.
+https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1400037
+https://creativecommons.org/licenses/by/4.0/
+
+センテンスハンター
+“Investigations” — Kevin MacLeod (incompetech.com)
+Licensed under Creative Commons Attribution 4.0.
+https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100646
+https://creativecommons.org/licenses/by/4.0/
+
+熟語クリニック
+“Local Forecast” — Kevin MacLeod (incompetech.com)
+Licensed under Creative Commons Attribution 4.0.
+https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1300010
+https://creativecommons.org/licenses/by/4.0/
+
+公式カタログが表示するAttribution Codeと、公式ライセンスページを確認した。
+https://incompetech.com/music/royalty-free/licenses/
+CC BY 4.0は、クレジット・ライセンスリンク・変更の明示を伴う複製、再配布、改変、商用利用を許可する。
+各ゲームの「音量」→「音源について」に曲名・作者・ライセンスリンク・加工内容を表示。
+配布HTMLにも同じ表示を内蔵し、Canvaで単体公開した場合も表示される。
+原曲のライセンスをゲーム全体に付すものではない。原曲素材に追加の利用制限を設けない。
+元のMP3に対し、先頭・末尾の無音除去、音量調整、再サンプリング、MP3再変換を行った。
+再生時は末尾と先頭を0.7秒重ねて、急な切れ目を和らげる。
+
+効果音
+Kenney Interface Sounds / Impact Sounds / RPG Audio
+https://kenney.nl/assets/interface-sounds
+https://kenney.nl/assets/impact-sounds
+https://kenney.nl/assets/rpg-audio
+https://kenney.nl/support
+CC0 1.0
+https://creativecommons.org/publicdomain/zero/1.0/
+配布ページのCC0表示と、Kenney公式FAQの商用利用・クレジット不要の説明を確認。
+既存のさんすうの森の素材記録とファイルハッシュを照合し、出所を確認した。
+自主的にゲーム内へKenney名と素材ページを記載。
+音量調整、無音トリミング、一部の連続再生を実施。個別ファイル名とハッシュはsources.jsonに保存。
+
+再生仕様
+最初は音OFF。音ONを押した後に録音素材を読み込む。
+BGMと効果音のON/OFFおよび音量を独立して設定できる。
+設定は作品別に端末内へ保存。
+バックグラウンド、ページ離脱、OFF操作で再生中と予約中の音を停止。
+BGMはWeb Audioで同じバッファを短く重ねて次の周へ進める。
+同時音はコンプレッサーでピークを抑える。
+Canva配布版は音源とコードをHTMLに内蔵し、各10,000,000バイト未満。
+試聴上の好みは次のユーザー評価で調整する。
+
+確認資料
+sources.jsonに使用音源、配布元、個別の変更、SHA-256を記録。
+CC BY 4.0とCC0のライセンス原文を同じフォルダに添付。
+公式ページの取得時コピーはローカル制作資料 audio-research/three-games に保存。
